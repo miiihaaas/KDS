@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-door-open me-2"></i>{{ 'Izmena prostorije' if izmena else 'Nova prostorija' }}
+            </h1>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{{ 'Izmena prostorije' if izmena else 'Nova prostorija' }} - {{ objekat.naziv }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.naziv.label(class="form-label") }}
+                                    {{ form.naziv(class="form-control" + (" is-invalid" if form.naziv.errors else "")) }}
+                                    {% for error in form.naziv.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.broj.label(class="form-label") }}
+                                    {{ form.broj(class="form-control" + (" is-invalid" if form.broj.errors else "")) }}
+                                    {% for error in form.broj.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.namena.label(class="form-label") }}
+                                    {{ form.namena(class="form-control" + (" is-invalid" if form.namena.errors else "")) }}
+                                    {% for error in form.namena.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                    <small class="text-muted">Unesite namenu prostorije</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <a href="{% if izmena %}{{ url_for('klijenti.detalji_prostorije', id=prostorija.id) }}{% else %}{{ url_for('klijenti.lista_prostorija', id=objekat.id) }}{% endif %}" class="btn btn-secondary me-2">Otkaži</a>
+                            <button type="submit" class="btn btn-primary">{{ 'Sačuvaj izmene' if izmena else 'Dodaj prostoriju' }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

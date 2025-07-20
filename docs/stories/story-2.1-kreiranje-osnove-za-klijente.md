@@ -5,7 +5,7 @@
 - **Epic**: Epic 2 - Upravljanje klijentima i strukturom
 - **Priority**: High
 - **Story Points**: 8
-- **Status**: Ready for Review
+- **Status**: Done
 - **Created**: 2025-07-20
 - **Assigned To**: AI Developer
 

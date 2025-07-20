@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-building me-2"></i>{{ objekat.naziv }}
+            </h1>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Detalji objekta</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('klijenti.izmeni_objekat', id=objekat.id) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square me-1"></i>Izmeni
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash me-1"></i>Obriši
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Osnovni podaci</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Naziv:</th>
+                                    <td>{{ objekat.naziv }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Opis:</th>
+                                    <td>{{ objekat.opis }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Dodatne informacije</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Pripada radnoj jedinici:</th>
+                                    <td><a href="{{ url_for('klijenti.detalji_radne_jedinice', id=objekat.radna_jedinica.id) }}">{{ objekat.radna_jedinica.naziv }}</a></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Prostorije</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('klijenti.lista_prostorija', id=objekat.id) }}" class="btn btn-sm btn-info me-2">
+                            <i class="bi bi-list me-1"></i>Lista prostorija
+                        </a>
+                        <a href="{{ url_for('klijenti.nova_prostorija', id=objekat.id) }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-plus-circle me-1"></i>Nova prostorija
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if prostorije %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Naziv</th>
+                                    <th>Sprat</th>
+                                    <th>Površina (m²)</th>
+                                    <th>Akcije</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prostorija in prostorije %}
+                                <tr>
+                                    <td>{{ prostorija.naziv }}</td>
+                                    <td>{{ prostorija.sprat }}</td>
+                                    <td>{{ prostorija.povrsina }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('klijenti.detalji_prostorije', id=prostorija.id) }}" class="btn btn-info" title="Detalji">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('klijenti.izmeni_prostoriju', id=prostorija.id) }}" class="btn btn-warning" title="Izmeni">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>Nema prostorija za prikaz.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal za brisanje -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Potvrda brisanja</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Da li ste sigurni da želite da obrišete objekat <strong>"{{ objekat.naziv }}"</strong>?</p>
+                <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Ova akcija će takođe obrisati sve povezane prostorije!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <form action="{{ url_for('klijenti.obrisi_objekat', id=objekat.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Potvrdi brisanje</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

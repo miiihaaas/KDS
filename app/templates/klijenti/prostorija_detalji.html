@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-door-open me-2"></i>{{ prostorija.naziv }}
+            </h1>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Detalji prostorije</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('klijenti.izmeni_prostoriju', id=prostorija.id) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square me-1"></i>Izmeni
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash me-1"></i>Obriši
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Osnovni podaci</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Naziv:</th>
+                                    <td>{{ prostorija.naziv }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Sprat:</th>
+                                    <td>{{ prostorija.sprat }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Broj:</th>
+                                    <td>{{ prostorija.broj }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Namena:</th>
+                                    <td>{{ prostorija.namena or '-' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Dodatne informacije</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Pripada objektu:</th>
+                                    <td><a href="{{ url_for('klijenti.detalji_objekta', id=prostorija.objekat.id) }}">{{ prostorija.objekat.naziv }}</a></td>
+                                </tr>
+                                <tr>
+                                    <th>Radna jedinica:</th>
+                                    <td><a href="{{ url_for('klijenti.detalji_radne_jedinice', id=prostorija.objekat.radna_jedinica.id) }}">{{ prostorija.objekat.radna_jedinica.naziv }}</a></td>
+                                </tr>
+                                <tr>
+                                    <th>Pravno lice:</th>
+                                    <td><a href="{{ url_for('klijenti.detalji_klijenta', id=prostorija.objekat.radna_jedinica.pravno_lice.id) }}">{{ prostorija.objekat.radna_jedinica.pravno_lice.naziv }}</a></td>
+                                </tr>
+                                <tr>
+                                    <th>Napomena:</th>
+                                    <td>{{ prostorija.napomena or '-' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal za brisanje -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Potvrda brisanja</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Da li ste sigurni da želite da obrišete prostoriju <strong>"{{ prostorija.naziv }}"</strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <form action="{{ url_for('klijenti.obrisi_prostoriju', id=prostorija.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Potvrdi brisanje</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

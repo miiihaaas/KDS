@@ -26,10 +26,10 @@ class PravnoLice(Client):
     
     id = db.Column(db.Integer, db.ForeignKey('clients.id'), primary_key=True)
     naziv = db.Column(db.String(255), nullable=False, index=True)
-    pib = db.Column(db.String(20), unique=True, nullable=False, index=True)
-    mb = db.Column(db.String(20), unique=True, nullable=False)
+    pib = db.Column(db.String(9), unique=True, nullable=False, index=True)
+    mb = db.Column(db.String(8), unique=True, nullable=False)
     
-    radne_jedinice = db.relationship('RadnaJedinica', backref='pravno_lice', lazy='dynamic')
+    radne_jedinice = db.relationship('RadnaJedinica', backref='pravno_lice', lazy=True, cascade='all, delete-orphan')
     
     __mapper_args__ = {
         'polymorphic_identity': 'pravno_lice',
@@ -68,12 +68,15 @@ class RadnaJedinica(db.Model):
     adresa = db.Column(db.String(255), nullable=False)
     mesto = db.Column(db.String(100), nullable=False)
     postanski_broj = db.Column(db.String(20), nullable=False)
-    telefon = db.Column(db.String(50))
+    drzava = db.Column(db.String(100), nullable=False, default='Srbija')
+    telefon = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(255))
     kontakt_osoba = db.Column(db.String(255))
     napomena = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    objekti = db.relationship('Objekat', backref='radna_jedinica', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<RadnaJedinica {self.naziv}, {self.adresa}, {self.mesto}>'
@@ -94,3 +97,35 @@ class LokacijaKuce(db.Model):
 
     def __repr__(self):
         return f'<LokacijaKuce {self.naziv}, {self.adresa}, {self.mesto}>'
+
+# Model za objekte (zgrade) radne jedinice
+class Objekat(db.Model):
+    __tablename__ = 'objekti'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    radna_jedinica_id = db.Column(db.Integer, db.ForeignKey('radne_jedinice.id'), nullable=False)
+    naziv = db.Column(db.String(255), nullable=False)
+    opis = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    prostorije = db.relationship('Prostorija', backref='objekat', lazy=True, cascade='all, delete-orphan')
+    
+    def __repr__(self):
+        return f'<Objekat {self.naziv}>'
+
+# Model za prostorije objekta
+class Prostorija(db.Model):
+    __tablename__ = 'prostorije'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    objekat_id = db.Column(db.Integer, db.ForeignKey('objekti.id'), nullable=False)
+    naziv = db.Column(db.String(255), nullable=False)
+    sprat = db.Column(db.String(50))
+    broj = db.Column(db.String(50))
+    namena = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    def __repr__(self):
+        return f'<Prostorija {self.naziv} - {self.broj}>'

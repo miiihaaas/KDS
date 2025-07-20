@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-building-gear me-2"></i>{{ 'Izmena radne jedinice' if izmena else 'Nova radna jedinica' }}
+            </h1>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">{{ 'Izmena radne jedinice' if izmena else 'Nova radna jedinica' }} - {{ pravno_lice.naziv }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.naziv.label(class="form-label") }}
+                                    {{ form.naziv(class="form-control" + (" is-invalid" if form.naziv.errors else "")) }}
+                                    {% for error in form.naziv.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.kontakt_osoba.label(class="form-label") }}
+                                    {{ form.kontakt_osoba(class="form-control" + (" is-invalid" if form.kontakt_osoba.errors else "")) }}
+                                    {% for error in form.kontakt_osoba.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    {{ form.adresa.label(class="form-label") }}
+                                    {{ form.adresa(class="form-control" + (" is-invalid" if form.adresa.errors else "")) }}
+                                    {% for error in form.adresa.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.mesto.label(class="form-label") }}
+                                    {{ form.mesto(class="form-control" + (" is-invalid" if form.mesto.errors else "")) }}
+                                    {% for error in form.mesto.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.postanski_broj.label(class="form-label") }}
+                                    {{ form.postanski_broj(class="form-control" + (" is-invalid" if form.postanski_broj.errors else "")) }}
+                                    {% for error in form.postanski_broj.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    {{ form.drzava.label(class="form-label") }}
+                                    {{ form.drzava(class="form-control" + (" is-invalid" if form.drzava.errors else "")) }}
+                                    {% for error in form.drzava.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.telefon.label(class="form-label") }}
+                                    {{ form.telefon(class="form-control" + (" is-invalid" if form.telefon.errors else "")) }}
+                                    {% for error in form.telefon.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
+                                    {% for error in form.email.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    {{ form.napomena.label(class="form-label") }}
+                                    {{ form.napomena(class="form-control" + (" is-invalid" if form.napomena.errors else ""), rows="4") }}
+                                    {% for error in form.napomena.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <a href="{% if izmena %}{{ url_for('klijenti.detalji_radne_jedinice', id=radna_jedinica.id) }}{% else %}{{ url_for('klijenti.lista_radnih_jedinica', id=pravno_lice.id) }}{% endif %}" class="btn btn-secondary me-2">Otkaži</a>
+                            <button type="submit" class="btn btn-primary">{{ 'Sačuvaj izmene' if izmena else 'Dodaj radnu jedinicu' }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

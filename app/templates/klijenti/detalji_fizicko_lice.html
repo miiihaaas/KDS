@@ -89,7 +89,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Lokacije</h5>
-                    <a href="#" class="btn btn-sm btn-primary">
+                    <a href="{{ url_for('klijenti.nova_lokacija', id=klijent.id) }}" class="btn btn-sm btn-primary">
                         <i class="bi bi-plus-circle me-1"></i>Dodaj novu lokaciju
                     </a>
                 </div>

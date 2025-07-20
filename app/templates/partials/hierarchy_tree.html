@@ -1,0 +1,36 @@
+{% macro render_node(node, active_id=None) -%}
+<li class="tree-item {% if node.id == active_id %}active{% endif %}">
+    <div class="d-flex align-items-center">
+        <i class="{{ node.icon }} me-2"></i>
+        <a href="{{ node.url }}" class="tree-link">{{ node.name }}</a>
+    </div>
+    {% if node.children %}
+    <ul class="tree-children">
+        {% for child in node.children %}
+            {{ render_node(child, active_id) }}
+        {% endfor %}
+    </ul>
+    {% endif %}
+</li>
+{%- endmacro %}
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Hijerarhijski prikaz</h5>
+    </div>
+    <div class="card-body">
+        {% if hierarchy %}
+        <div class="entity-tree">
+            <ul class="tree-root">
+                {% for node in hierarchy %}
+                    {{ render_node(node, active_id) }}
+                {% endfor %}
+            </ul>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Nema dostupnih podataka za hijerarhijski prikaz.
+        </div>
+        {% endif %}
+    </div>
+</div>

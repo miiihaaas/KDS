@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-building-gear me-2"></i>{{ radna_jedinica.naziv }}
+            </h1>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Detalji radne jedinice</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('klijenti.izmeni_radnu_jedinicu', id=radna_jedinica.id) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square me-1"></i>Izmeni
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash me-1"></i>Obriši
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Osnovni podaci</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Naziv:</th>
+                                    <td>{{ radna_jedinica.naziv }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Adresa:</th>
+                                    <td>{{ radna_jedinica.adresa }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Mesto:</th>
+                                    <td>{{ radna_jedinica.mesto }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Poštanski broj:</th>
+                                    <td>{{ radna_jedinica.postanski_broj }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Država:</th>
+                                    <td>{{ radna_jedinica.drzava }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Kontakt podaci</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Kontakt osoba:</th>
+                                    <td>{{ radna_jedinica.kontakt_osoba or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Telefon:</th>
+                                    <td>{{ radna_jedinica.telefon }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ radna_jedinica.email or '-' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Napomena:</th>
+                                    <td>{{ radna_jedinica.napomena or '-' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Objekti</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('klijenti.lista_objekata', id=radna_jedinica.id) }}" class="btn btn-sm btn-info me-2">
+                            <i class="bi bi-list me-1"></i>Lista objekata
+                        </a>
+                        <a href="{{ url_for('klijenti.novi_objekat', id=radna_jedinica.id) }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-plus-circle me-1"></i>Novi objekat
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if objekti %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Naziv</th>
+                                    <th>Adresa</th>
+                                    <th>Mesto</th>
+                                    <th>Akcije</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for objekat in objekti %}
+                                <tr>
+                                    <td>{{ objekat.naziv }}</td>
+                                    <td>{{ objekat.adresa }}</td>
+                                    <td>{{ objekat.mesto }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('klijenti.detalji_objekta', id=objekat.id) }}" class="btn btn-info" title="Detalji">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('klijenti.izmeni_objekat', id=objekat.id) }}" class="btn btn-warning" title="Izmeni">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>Nema objekata za prikaz.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal za brisanje -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Potvrda brisanja</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Da li ste sigurni da želite da obrišete radnu jedinicu <strong>"{{ radna_jedinica.naziv }}"</strong>?</p>
+                <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> Ova akcija će takođe obrisati sve povezane objekte i prostorije!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <form action="{{ url_for('klijenti.obrisi_radnu_jedinicu', id=radna_jedinica.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Potvrdi brisanje</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

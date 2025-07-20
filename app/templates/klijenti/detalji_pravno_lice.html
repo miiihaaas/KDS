@@ -93,12 +93,12 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Radne jedinice</h5>
-                    <a href="#" class="btn btn-sm btn-primary">
+                    <a href="{{ url_for('klijenti.nova_radna_jedinica', id=klijent.id) }}" class="btn btn-sm btn-primary">
                         <i class="bi bi-plus-circle me-1"></i>Dodaj radnu jedinicu
                     </a>
                 </div>
                 <div class="card-body">
-                    {% if klijent.radne_jedinice.count() > 0 %}
+                    {% if klijent.radne_jedinice|length > 0 %}
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead>
@@ -121,10 +121,10 @@
                                     <td>{{ jedinica.kontakt_osoba }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="#" class="btn btn-sm btn-info" title="Detalji">
+                                            <a href="{{ url_for('klijenti.detalji_radne_jedinice', id=jedinica.id) }}" class="btn btn-sm btn-info" title="Detalji">
                                                 <i class="bi bi-info-circle"></i>
                                             </a>
-                                            <a href="#" class="btn btn-sm btn-warning" title="Izmeni">
+                                            <a href="{{ url_for('klijenti.izmeni_radnu_jedinicu', id=jedinica.id) }}" class="btn btn-sm btn-warning" title="Izmeni">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                         </div>
