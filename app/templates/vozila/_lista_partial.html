@@ -1,0 +1,189 @@
+{% if vozila.items %}
+<div class="table-responsive">
+    <table class="table table-hover table-striped">
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Marka</th>
+                <th>Model</th>
+                <th>Registarska oznaka</th>
+                <th>Status</th>
+                <th>Datum ažuriranja</th>
+                <th>Akcije</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for vozilo in vozila.items %}
+            <tr>
+                <td>{{ vozilo.id }}</td>
+                <td>{{ vozilo.marka }}</td>
+                <td>{{ vozilo.model }}</td>
+                <td>{{ vozilo.registracija }}</td>
+                <td>
+                    {% if vozilo.active %}
+                    <span class="badge bg-success">Aktivno</span>
+                    {% else %}
+                    <span class="badge bg-danger">Neaktivno</span>
+                    {% endif %}
+                </td>
+                <td>{{ vozilo.updated_at.strftime('%d.%m.%Y. %H:%M') }}</td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('vozila.izmeni', id=vozilo.id) }}" class="btn btn-outline-primary">
+                            <i class="bi bi-pencil"></i> Izmeni
+                        </a>
+                        <button type="button" 
+                                class="btn btn-outline-{{ 'danger' if vozilo.active else 'success' }} toggle-status-btn"
+                                data-id="{{ vozilo.id }}" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#statusModal" 
+                                data-action="{{ 'Deaktiviraj' if vozilo.active else 'Aktiviraj' }}">
+                            <i class="bi bi-{{ 'x-circle' if vozilo.active else 'check-circle' }}"></i>
+                            {{ 'Deaktiviraj' if vozilo.active else 'Aktiviraj' }}
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginacija -->
+<nav aria-label="Paginacija vozila">
+    <ul class="pagination justify-content-center">
+        {% if vozila.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('vozila.lista', page=vozila.prev_num, q=search_query) }}">Prethodna</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Prethodna</span>
+        </li>
+        {% endif %}
+        
+        {% for page_num in vozila.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == vozila.page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('vozila.lista', page=page_num, q=search_query) }}">{{ page_num }}</a>
+                </li>
+                {% endif %}
+            {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if vozila.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('vozila.lista', page=vozila.next_num, q=search_query) }}">Sledeća</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link">Sledeća</span>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% else %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i> Nema pronađenih vozila.
+</div>
+{% endif %}
+
+<!-- Modal za potvrdu promene statusa -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Potvrda promene statusa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="status-confirm-message">Da li ste sigurni da želite da promenite status vozila?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <button type="button" class="btn btn-primary" id="confirmStatusBtn">Potvrdi</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let activeVehicleId = null;
+    let activeAction = null;
+    
+    // Postavljanje podataka modala kada se klikne dugme za promenu statusa
+    document.querySelectorAll('.toggle-status-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            activeVehicleId = this.getAttribute('data-id');
+            activeAction = this.getAttribute('data-action');
+            
+            // Ažuriranje teksta u modalu
+            document.getElementById('status-confirm-message').textContent = 
+                `Da li ste sigurni da želite da ${activeAction.toLowerCase()} ovo vozilo?`;
+            
+            // Podešavanje klase dugmeta u zavisnosti od akcije
+            const confirmBtn = document.getElementById('confirmStatusBtn');
+            confirmBtn.className = 'btn btn-' + (activeAction === 'Deaktiviraj' ? 'danger' : 'success');
+            confirmBtn.textContent = activeAction;
+        });
+    });
+    
+    // Izvršavanje akcije kada se klikne "Potvrdi"
+    document.getElementById('confirmStatusBtn').addEventListener('click', function() {
+        if (activeVehicleId) {
+            // Slanje AJAX zahteva za promenu statusa
+            fetch(`/vozila/${activeVehicleId}/status`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Zatvaranje modala
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('statusModal'));
+                    modal.hide();
+                    
+                    // Prikaz poruke o uspehu
+                    const alertHtml = `
+                        <div class="alert alert-${data.category} alert-dismissible fade show" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            ${data.message}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    `;
+                    
+                    // Dodavanje alert-a na početak container-a
+                    const container = document.querySelector('.container');
+                    container.insertAdjacentHTML('afterbegin', alertHtml);
+                    
+                    // Ponovno učitavanje liste vozila
+                    const searchQuery = document.getElementById('search-vozila').value.trim();
+                    fetch(`{{ url_for('vozila.lista') }}?q=${encodeURIComponent(searchQuery)}`, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('vozila-lista-container').innerHTML = data.html;
+                    });
+                }
+            })
+            .catch(error => console.error('Greška prilikom promene statusa:', error));
+        }
+    });
+});
+</script>

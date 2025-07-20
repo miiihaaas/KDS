@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}Dodavanje novog korisnika{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-user-plus"></i> Dodavanje novog korisnika</h2>
+        <a href="{{ url_for('korisnici.lista') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Nazad na listu
+        </a>
+    </div>
+
+    <!-- Flash poruke -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zatvori"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('korisnici.novi') }}" class="needs-validation" novalidate>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="ime" class="form-label">Ime <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ime" name="ime" placeholder="Unesite ime" 
+                               value="{{ values.ime if values is defined and values.ime else '' }}" 
+                               required minlength="2">
+                        <div class="invalid-feedback">
+                            Ime mora imati najmanje 2 karaktera.
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="prezime" class="form-label">Prezime <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="prezime" name="prezime" placeholder="Unesite prezime" 
+                               value="{{ values.prezime if values is defined and values.prezime else '' }}" 
+                               required minlength="2">
+                        <div class="invalid-feedback">
+                            Prezime mora imati najmanje 2 karaktera.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email adresa <span class="text-danger">*</span></label>
+                    <input type="email" class="form-control" id="email" name="email" placeholder="korisnik@example.com" 
+                           value="{{ values.email if values is defined and values.email else '' }}" 
+                           required>
+                    <div class="invalid-feedback">
+                        Unesite validnu email adresu.
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">Lozinka <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Unesite lozinku" required minlength="8">
+                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Lozinka mora imati najmanje 8 karaktera.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="password_confirm" class="form-label">Potvrda lozinke <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="password_confirm" name="password_confirm" 
+                                   placeholder="Potvrdite lozinku" required>
+                            <button class="btn btn-outline-secondary toggle-password" type="button">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback">
+                            Lozinke se ne podudaraju.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label d-block">Tip korisnika <span class="text-danger">*</span></label>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tip" id="tip-admin" value="administrator" 
+                               {{ 'checked' if values is defined and values.tip == 'administrator' else '' }} required>
+                        <label class="form-check-label" for="tip-admin">Administrator</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="tip" id="tip-serviser" value="serviser" 
+                               {{ 'checked' if values is defined and values.tip == 'serviser' else '' }} required>
+                        <label class="form-check-label" for="tip-serviser">Serviser</label>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="aktivan" id="aktivan" 
+                               {{ 'checked' if values is not defined or values.aktivan else '' }}>
+                        <label class="form-check-label" for="aktivan">
+                            Aktivan nalog
+                        </label>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ url_for('korisnici.lista') }}" class="btn btn-secondary me-md-2">
+                        Otkaži
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Sačuvaj
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dugmad za prikaz/skrivanje lozinke
+        document.querySelectorAll('.toggle-password').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const input = this.previousElementSibling;
+                const icon = this.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
+                }
+            });
+        });
+        
+        // Validacija forme
+        const form = document.querySelector('form');
+        const password = document.getElementById('password');
+        const passwordConfirm = document.getElementById('password_confirm');
+        
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            // Provera podudaranja lozinki
+            if (password.value !== passwordConfirm.value) {
+                passwordConfirm.setCustomValidity('Lozinke se ne podudaraju');
+                event.preventDefault();
+                event.stopPropagation();
+            } else {
+                passwordConfirm.setCustomValidity('');
+            }
+            
+            form.classList.add('was-validated');
+        });
+        
+        // Reset validacije pri promeni input-a
+        password.addEventListener('input', () => {
+            if (passwordConfirm.value) {
+                if (password.value !== passwordConfirm.value) {
+                    passwordConfirm.setCustomValidity('Lozinke se ne podudaraju');
+                } else {
+                    passwordConfirm.setCustomValidity('');
+                }
+            }
+        });
+        
+        passwordConfirm.addEventListener('input', () => {
+            if (password.value !== passwordConfirm.value) {
+                passwordConfirm.setCustomValidity('Lozinke se ne podudaraju');
+            } else {
+                passwordConfirm.setCustomValidity('');
+            }
+        });
+    });
+</script>
+{% endblock %}

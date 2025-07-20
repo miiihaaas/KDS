@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i class="bi bi-speedometer2 me-2"></i>Dashboard
+            </h1>
+            <div class="text-muted">
+                <i class="bi bi-clock me-1"></i>
+                <span id="current-time"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Dobrodošli u KDS sistem
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">
+                    Dobrodošli, <strong>{{ user.get_full_name() }}</strong>! 
+                    Prijavljeni ste kao <span class="badge bg-{{ 'primary' if user.is_administrator() else 'secondary' }}">{{ user.tip }}</span>.
+                </p>
+                
+                {% if user.is_administrator() %}
+                <div class="alert alert-info">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Kao administrator, imate pristup svim funkcionalnostima sistema.
+                </div>
+                {% else %}
+                <div class="alert alert-secondary">
+                    <i class="bi bi-person-gear me-2"></i>
+                    Kao serviser, imate pristup funkcionalnostima potrebnim za vaš rad.
+                </div>
+                {% endif %}
+                
+                <p class="text-muted mb-0">
+                    <small>
+                        <i class="bi bi-calendar-event me-1"></i>
+                        Poslednja prijava: {{ user.updated_at.strftime('%d.%m.%Y u %H:%M') }}
+                    </small>
+                </p>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-list-check me-2"></i>Brze akcije
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if user.is_administrator() %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-grid">
+                            <a href="{{ url_for('korisnici.lista') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-people me-2"></i>Upravljanje korisnicima
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-outline-primary">
+                                <i class="bi bi-building me-2"></i>Upravljanje firmama
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="col-md-6 mb-3">
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-outline-success">
+                                <i class="bi bi-plus-circle me-2"></i>Novi servis
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-grid">
+                            <a href="#" class="btn btn-outline-info">
+                                <i class="bi bi-search me-2"></i>Pretraži servise
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-person-circle me-2"></i>Informacije o nalogu
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Ime:</dt>
+                    <dd class="col-sm-8">{{ user.ime }}</dd>
+                    
+                    <dt class="col-sm-4">Prezime:</dt>
+                    <dd class="col-sm-8">{{ user.prezime }}</dd>
+                    
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8">{{ user.email }}</dd>
+                    
+                    <dt class="col-sm-4">Tip:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-{{ 'primary' if user.is_administrator() else 'secondary' }}">
+                            {{ user.tip|title }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-{{ 'success' if user.aktivan else 'danger' }}">
+                            {{ 'Aktivan' if user.aktivan else 'Neaktivan' }}
+                        </span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Kreiran:</dt>
+                    <dd class="col-sm-8">{{ user.created_at.strftime('%d.%m.%Y') }}</dd>
+                </dl>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart me-2"></i>Statistike
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">0</h4>
+                            <small class="text-muted">Aktivni servisi</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success">0</h4>
+                        <small class="text-muted">Završeni servisi</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ažuriraj trenutno vreme
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('sr-RS', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        document.getElementById('current-time').textContent = timeString;
+    }
+    
+    // Ažuriraj vreme svake sekunde
+    updateTime();
+    setInterval(updateTime, 1000);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Upravljanje korisnicima{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-users"></i> Upravljanje korisnicima</h2>
+        <a href="{{ url_for('korisnici.novi') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Dodaj novog korisnika
+        </a>
+    </div>
+
+    <!-- Flash poruke -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Zatvori"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Pretraga -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="search-input" class="form-control" placeholder="Pretraži korisnike..." 
+                               value="{{ search_query }}">
+                        <button type="button" id="clear-search" class="btn btn-outline-secondary" 
+                                {% if not search_query %}style="display:none;"{% endif %}>
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista korisnika -->
+    <div id="korisnici-container">
+        {% include 'korisnici/_lista_partial.html' %}
+    </div>
+</div>
+
+<!-- Modal za potvrdu promene statusa -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Potvrda akcije</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zatvori"></button>
+            </div>
+            <div class="modal-body">
+                <p id="status-message">Da li ste sigurni da želite da promenite status ovog korisnika?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <form id="status-form" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">Potvrdi</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicijalizacija statusModal-a
+        const statusModal = document.getElementById('statusModal');
+        const statusForm = document.getElementById('status-form');
+        const statusMessage = document.getElementById('status-message');
+        
+        // Postavljanje event listener-a za dugmad za promenu statusa
+        document.querySelectorAll('.btn-status').forEach(button => {
+            button.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                const userStatus = this.dataset.status === 'true';
+                const userName = this.dataset.userName;
+                
+                // Postavljanje poruke i URL-a za formu
+                statusMessage.textContent = userStatus 
+                    ? `Da li ste sigurni da želite da deaktivirate korisnika ${userName}?` 
+                    : `Da li ste sigurni da želite da aktivirate korisnika ${userName}?`;
+                statusForm.action = `/korisnici/${userId}/status`;
+                
+                // Prikazivanje modala
+                const modal = new bootstrap.Modal(statusModal);
+                modal.show();
+            });
+        });
+        
+        // Pretraga korisnika
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search');
+        const korisniciContainer = document.getElementById('korisnici-container');
+        
+        let searchTimeout;
+        
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            
+            // Prikaz/skrivanje dugmeta za brisanje pretrage
+            if (this.value) {
+                clearSearchBtn.style.display = 'block';
+            } else {
+                clearSearchBtn.style.display = 'none';
+            }
+            
+            // Izvršavanje pretrage nakon 300ms pauze u kucanju
+            searchTimeout = setTimeout(() => {
+                executeSearch(this.value);
+            }, 300);
+        });
+        
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            executeSearch('');
+        });
+        
+        function executeSearch(query) {
+            // AJAX poziv za pretragu korisnika
+            fetch(`{{ url_for('korisnici.lista') }}?q=${encodeURIComponent(query)}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                korisniciContainer.innerHTML = data.html;
+                
+                // Ponovo dodajemo listenere za status dugmad nakon ažuriranja HTML-a
+                document.querySelectorAll('.btn-status').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const userId = this.dataset.userId;
+                        const userStatus = this.dataset.status === 'true';
+                        const userName = this.dataset.userName;
+                        
+                        statusMessage.textContent = userStatus 
+                            ? `Da li ste sigurni da želite da deaktivirate korisnika ${userName}?` 
+                            : `Da li ste sigurni da želite da aktivirate korisnika ${userName}?`;
+                        statusForm.action = `/korisnici/${userId}/status`;
+                        
+                        const modal = new bootstrap.Modal(statusModal);
+                        modal.show();
+                    });
+                });
+                
+                // Ažuriramo URL za lakše kopiranje/deljenje pretrage
+                const url = new URL(window.location);
+                if (query) {
+                    url.searchParams.set('q', query);
+                } else {
+                    url.searchParams.delete('q');
+                }
+                window.history.replaceState({}, '', url);
+            })
+            .catch(error => {
+                console.error('Greška prilikom pretrage:', error);
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Lista vozila</h1>
+        <a href="{{ url_for('vozila.novo') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Dodaj novo vozilo
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="input-group mb-0">
+                <span class="input-group-text">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" 
+                       id="search-vozila" 
+                       class="form-control" 
+                       placeholder="Pretraži vozila po marki, modelu ili registarskoj oznaci..." 
+                       value="{{ search_query }}">
+            </div>
+        </div>
+    </div>
+
+    <div id="vozila-lista-container">
+        {% include 'vozila/_lista_partial.html' %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-vozila');
+    let searchTimer;
+
+    // Dodaj event listener za pretragu dok korisnik kuca
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        const query = this.value.trim();
+        
+        // Postavimo timer da ne bi slali previše zahteva
+        searchTimer = setTimeout(() => {
+            searchVozila(query);
+        }, 300);
+    });
+
+    function searchVozila(query) {
+        fetch(`{{ url_for('vozila.lista') }}?q=${encodeURIComponent(query)}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('vozila-lista-container').innerHTML = data.html;
+        })
+        .catch(error => console.error('Greška prilikom pretrage:', error));
+    }
+});
+</script>
+{% endblock %}

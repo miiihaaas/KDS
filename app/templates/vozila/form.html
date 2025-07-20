@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title mb-0">{{ title }}</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {{ forma.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ forma.marka.label(class="form-label") }}
+                            {{ forma.marka(class="form-control" + (" is-invalid" if forma.marka.errors else ""), placeholder="Unesite marku vozila") }}
+                            {% if forma.marka.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in forma.marka.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ forma.model.label(class="form-label") }}
+                            {{ forma.model(class="form-control" + (" is-invalid" if forma.model.errors else ""), placeholder="Unesite model vozila") }}
+                            {% if forma.model.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in forma.model.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ forma.registracija.label(class="form-label") }}
+                            {{ forma.registracija(class="form-control" + (" is-invalid" if forma.registracija.errors else ""), placeholder="Unesite registarsku oznaku") }}
+                            {% if forma.registracija.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in forma.registracija.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Registarska oznaka može sadržati samo velika slova, brojeve, crtice i razmake.
+                            </small>
+                        </div>
+                        
+                        <div class="mb-4 form-check">
+                            {{ forma.active(class="form-check-input") }}
+                            {{ forma.active.label(class="form-check-label") }}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('vozila.lista') }}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-1"></i> Otkaži
+                            </a>
+                            {{ forma.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
