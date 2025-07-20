@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                {% if izmena %}
+                <i class="bi bi-pencil-square me-2"></i>Izmena klijenta
+                {% else %}
+                <i class="bi bi-plus-circle me-2"></i>Novi klijent - Fizičko lice
+                {% endif %}
+            </h1>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        {% if izmena %}
+                        Izmena podataka za fizičko lice: {{ klijent.get_full_name() }}
+                        {% else %}
+                        Podaci o fizičkom licu
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <h4>Osnovni podaci</h4>
+                                <hr>
+
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        {{ form.ime.label(class="form-label") }}
+                                        {{ form.ime(class="form-control" + (" is-invalid" if form.ime.errors else ""), placeholder="Unesite ime") }}
+                                        {% if form.ime.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.ime.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col">
+                                        {{ form.prezime.label(class="form-label") }}
+                                        {{ form.prezime(class="form-control" + (" is-invalid" if form.prezime.errors else ""), placeholder="Unesite prezime") }}
+                                        {% if form.prezime.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.prezime.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <h4>Kontakt podaci</h4>
+                                <hr>
+
+                                <div class="mb-3">
+                                    {{ form.adresa.label(class="form-label") }}
+                                    {{ form.adresa(class="form-control" + (" is-invalid" if form.adresa.errors else ""), placeholder="Unesite adresu") }}
+                                    {% if form.adresa.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.adresa.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        {{ form.mesto.label(class="form-label") }}
+                                        {{ form.mesto(class="form-control" + (" is-invalid" if form.mesto.errors else ""), placeholder="Unesite mesto") }}
+                                        {% if form.mesto.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.mesto.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col">
+                                        {{ form.postanski_broj.label(class="form-label") }}
+                                        {{ form.postanski_broj(class="form-control" + (" is-invalid" if form.postanski_broj.errors else ""), placeholder="npr. 11000") }}
+                                        {% if form.postanski_broj.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.postanski_broj.errors %}
+                                            {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.drzava.label(class="form-label") }}
+                                    {{ form.drzava(class="form-control" + (" is-invalid" if form.drzava.errors else "")) }}
+                                    {% if form.drzava.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.drzava.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.telefon.label(class="form-label") }}
+                                    {{ form.telefon(class="form-control" + (" is-invalid" if form.telefon.errors else ""), placeholder="npr. +381 60 123-45-67") }}
+                                    {% if form.telefon.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.telefon.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="mb-3">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="npr. ime.prezime@example.com") }}
+                                    {% if form.email.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.email.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('klijenti.lista') }}" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-x-circle me-1"></i>Otkaži
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

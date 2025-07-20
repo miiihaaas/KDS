@@ -155,8 +155,8 @@ ehthumbs.db
 Thumbs.db
 
 # AI Agent specific (Windsurf, Cursor, etc.)
-windsurf/
-.windsurf/
+# windsurf/
+# .windsurf/
 .cursor/
 .aider*
 

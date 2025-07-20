@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-building me-2"></i>{{ klijent.naziv }}
+            </h1>
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Detalji pravnog lica</h5>
+                    <div class="btn-group">
+                        <a href="{{ url_for('klijenti.izmeni_klijenta', id=klijent.id) }}" class="btn btn-sm btn-warning">
+                            <i class="bi bi-pencil-square me-1"></i>Izmeni
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4>Osnovni podaci</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Naziv:</th>
+                                    <td>{{ klijent.naziv }}</td>
+                                </tr>
+                                <tr>
+                                    <th>PIB:</th>
+                                    <td>{{ klijent.pib }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Matični broj:</th>
+                                    <td>{{ klijent.mb }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Datum kreiranja:</th>
+                                    <td>{{ klijent.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Poslednje ažuriranje:</th>
+                                    <td>{{ klijent.updated_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h4>Kontakt podaci</h4>
+                            <hr>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th style="width: 30%;">Adresa:</th>
+                                    <td>{{ klijent.adresa }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Mesto:</th>
+                                    <td>{{ klijent.mesto }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Poštanski broj:</th>
+                                    <td>{{ klijent.postanski_broj }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Država:</th>
+                                    <td>{{ klijent.drzava }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Telefon:</th>
+                                    <td>{{ klijent.telefon }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>
+                                        <a href="mailto:{{ klijent.email }}">{{ klijent.email }}</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Radne jedinice</h5>
+                    <a href="#" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Dodaj radnu jedinicu
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if klijent.radne_jedinice.count() > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Naziv</th>
+                                    <th>Adresa</th>
+                                    <th>Mesto</th>
+                                    <th>Telefon</th>
+                                    <th>Kontakt osoba</th>
+                                    <th>Akcije</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for jedinica in klijent.radne_jedinice %}
+                                <tr>
+                                    <td>{{ jedinica.naziv }}</td>
+                                    <td>{{ jedinica.adresa }}</td>
+                                    <td>{{ jedinica.mesto }}</td>
+                                    <td>{{ jedinica.telefon }}</td>
+                                    <td>{{ jedinica.kontakt_osoba }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="#" class="btn btn-sm btn-info" title="Detalji">
+                                                <i class="bi bi-info-circle"></i>
+                                            </a>
+                                            <a href="#" class="btn btn-sm btn-warning" title="Izmeni">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        Nema definisanih radnih jedinica za ovog klijenta.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

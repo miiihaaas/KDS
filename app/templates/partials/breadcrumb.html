@@ -1,0 +1,14 @@
+{% if breadcrumbs %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}"><i class="bi bi-house-fill"></i> Početna</a></li>
+        {% for breadcrumb in breadcrumbs %}
+            {% if loop.last %}
+                <li class="breadcrumb-item active" aria-current="page">{{ breadcrumb.name }}</li>
+            {% else %}
+                <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name }}</a></li>
+            {% endif %}
+        {% endfor %}
+    </ol>
+</nav>
+{% endif %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="bi bi-plus-circle me-2"></i>Novi klijent
+            </h1>
+            {% set breadcrumbs = [
+                {'name': 'Klijenti', 'url': url_for('klijenti.lista')},
+                {'name': 'Novi klijent', 'url': None}
+            ] %}
+            {% include 'partials/breadcrumb.html' %}
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Izaberite tip klijenta</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-4">
+                            <div class="btn-group" role="group">
+                                {% for subfield in form.tip_klijenta %}
+                                <div class="form-check form-check-inline mb-2">
+                                    {{ subfield(class="form-check-input") }}
+                                    <label class="form-check-label" for="{{ subfield.id }}">
+                                        {% if subfield.data == "pravno_lice" %}
+                                            <i class="bi bi-building me-1"></i>Pravno lice (kompanija, organizacija)
+                                        {% else %}
+                                            <i class="bi bi-person me-1"></i>Fizičko lice (individualni korisnik)
+                                        {% endif %}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.tip_klijenta.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.tip_klijenta.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('klijenti.lista') }}" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-x-circle me-1"></i>Otkaži
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

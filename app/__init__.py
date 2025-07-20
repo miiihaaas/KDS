@@ -33,6 +33,7 @@ def create_app(config_name=None):
     # Registracija blueprint-a
     from app.views.auth import auth_bp
     from app.views.dashboard import dashboard_bp
+    from app.views.klijenti import klijenti_bp
     from app.views.korisnici import korisnici_bp
     from app.views.vozila import vozila_bp
     from app.views.materijali import materijali_bp
@@ -40,6 +41,7 @@ def create_app(config_name=None):
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp)
+    app.register_blueprint(klijenti_bp)
     app.register_blueprint(korisnici_bp)
     app.register_blueprint(vozila_bp)
     app.register_blueprint(materijali_bp)
