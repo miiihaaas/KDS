@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% set active_page = "klijenti" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Glavni sadržaj -->
+        <div class="col-md-12 col-lg-12">
+            <!-- Breadcrumbs -->
+            {% include 'partials/breadcrumb.html' %}
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="bi bi-house-heart"></i> 
+                    {{ lokacija.naziv }}
+                </h2>
+                <div>
+                    <a href="{{ url_for('klijenti.izmeni_lokaciju', id=lokacija.id) }}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Izmeni
+                    </a>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="bi bi-trash"></i> Obriši
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Osnovni podaci o lokaciji -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Osnovni podaci</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Vlasnik:</th>
+                                    <td>
+                                        <a href="{{ url_for('klijenti.detalji_klijenta', id=fizicko_lice.id) }}">
+                                            {{ fizicko_lice.puno_ime }}
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Naziv lokacije:</th>
+                                    <td>{{ lokacija.naziv }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Adresa:</th>
+                                    <td>{{ lokacija.adresa }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Mesto:</th>
+                                    <td>{{ lokacija.mesto }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Poštanski broj:</th>
+                                    <td>{{ lokacija.postanski_broj }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Država:</th>
+                                    <td>{{ lokacija.drzava }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if lokacija.napomena %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Napomena</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">{{ lokacija.napomena|nl2br }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Statistika -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Objekti</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0">{{ stats.objekti }}</h3>
+                                    <p class="text-muted">Ukupan broj objekata</p>
+                                </div>
+                                <a href="#" class="btn btn-primary">
+                                    <i class="bi bi-building"></i> Pregledaj
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Prostorije</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0">{{ stats.prostorije }}</h3>
+                                    <p class="text-muted">Ukupan broj prostorija</p>
+                                </div>
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="bi bi-door-closed"></i> Pregledaj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal za brisanje -->
+            <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteModalLabel">Potvrda brisanja</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zatvori"></button>
+                        </div>
+                        <div class="modal-body">
+                            Da li ste sigurni da želite da obrišete lokaciju <strong>{{ lokacija.naziv }}</strong>?
+                            <p class="text-danger mt-2">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Ova akcija će obrisati sve objekte i prostorije povezane sa ovom lokacijom.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                            <form action="{{ url_for('klijenti.obrisi_lokaciju', id=lokacija.id) }}" method="post">
+                                <button type="submit" class="btn btn-danger">Obriši</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -29,7 +29,7 @@
                         {% if klijent.tip == 'pravno_lice' %}
                             {{ klijent.naziv }}
                         {% else %}
-                            {{ klijent.get_full_name() }}
+                            {{ klijent.ime }} {{ klijent.prezime }}
                         {% endif %}
                     </td>
                     <td>{{ klijent.adresa }}, {{ klijent.mesto }}</td>

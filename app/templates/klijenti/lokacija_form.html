@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% set active_page = "klijenti" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Glavni sadržaj -->
+        <div class="col-md-12 col-lg-12">
+            <!-- Breadcrumbs -->
+            {% include 'partials/breadcrumb.html' %}
+            
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        {% if izmena %}
+                            <i class="bi bi-pencil-square"></i> Izmena lokacije
+                        {% else %}
+                            <i class="bi bi-house-add"></i> Nova lokacija za klijenta {{ fizicko_lice.puno_ime }}
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {{ form.csrf_token }}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.naziv.label(class="form-label") }}
+                                    {{ form.naziv(class="form-control" + (" is-invalid" if form.naziv.errors else "")) }}
+                                    {% if form.naziv.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.naziv.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    {{ form.adresa.label(class="form-label") }}
+                                    {{ form.adresa(class="form-control" + (" is-invalid" if form.adresa.errors else "")) }}
+                                    {% if form.adresa.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.adresa.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.mesto.label(class="form-label") }}
+                                    {{ form.mesto(class="form-control" + (" is-invalid" if form.mesto.errors else "")) }}
+                                    {% if form.mesto.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.mesto.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    {{ form.postanski_broj.label(class="form-label") }}
+                                    {{ form.postanski_broj(class="form-control" + (" is-invalid" if form.postanski_broj.errors else "")) }}
+                                    {% if form.postanski_broj.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.postanski_broj.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    {{ form.drzava.label(class="form-label") }}
+                                    {{ form.drzava(class="form-control" + (" is-invalid" if form.drzava.errors else "")) }}
+                                    {% if form.drzava.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.drzava.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-4">
+                            {% if izmena %}
+                                <a href="{{ url_for('klijenti.detalji_lokacije', id=lokacija.id) }}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Odustani
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('klijenti.lista_lokacija', id=fizicko_lice.id) }}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Odustani
+                                </a>
+                            {% endif %}
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i>
+                                {% if izmena %}
+                                    Sačuvaj izmene
+                                {% else %}
+                                    Sačuvaj lokaciju
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,3 +1,4 @@
+from flask import url_for
 from app import db
 from datetime import datetime
 
@@ -46,7 +47,7 @@ class FizickoLice(Client):
     ime = db.Column(db.String(100), nullable=False, index=True)
     prezime = db.Column(db.String(100), nullable=False, index=True)
     
-    lokacije = db.relationship('LokacijaKuce', backref='fizicko_lice', lazy='dynamic')
+    lokacije = db.relationship('LokacijaKuce', backref='fizicko_lice', lazy=True, cascade='all, delete-orphan')
     
     __mapper_args__ = {
         'polymorphic_identity': 'fizicko_lice',
@@ -55,7 +56,8 @@ class FizickoLice(Client):
     def __repr__(self):
         return f'<FizickoLice {self.ime} {self.prezime}>'
     
-    def get_full_name(self):
+    @property
+    def puno_ime(self):
         return f"{self.ime} {self.prezime}"
 
 # Model za radnu jedinicu (za pravna lica)
@@ -91,25 +93,34 @@ class LokacijaKuce(db.Model):
     adresa = db.Column(db.String(255), nullable=False)
     mesto = db.Column(db.String(100), nullable=False)
     postanski_broj = db.Column(db.String(20), nullable=False)
+    drzava = db.Column(db.String(100), nullable=False, default='Srbija')
     napomena = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    objekti = db.relationship('Objekat', backref='lokacija_kuce', lazy=True, cascade='all, delete-orphan')
 
     def __repr__(self):
-        return f'<LokacijaKuce {self.naziv}, {self.adresa}, {self.mesto}>'
+        return f'<LokacijaKuce {self.naziv} - {self.fizicko_lice.puno_ime}>'
 
-# Model za objekte (zgrade) radne jedinice
+# Model za objekte (zgrade)
+
+
 class Objekat(db.Model):
     __tablename__ = 'objekti'
     
     id = db.Column(db.Integer, primary_key=True)
-    radna_jedinica_id = db.Column(db.Integer, db.ForeignKey('radne_jedinice.id'), nullable=False)
     naziv = db.Column(db.String(255), nullable=False)
     opis = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Polymorphic relationship - može pripadati ili radnoj jedinici ili lokaciji kuće
+    radna_jedinica_id = db.Column(db.Integer, db.ForeignKey('radne_jedinice.id'), nullable=True)
+    lokacija_kuce_id = db.Column(db.Integer, db.ForeignKey('lokacije_kuce.id'), nullable=True)
     
     prostorije = db.relationship('Prostorija', backref='objekat', lazy=True, cascade='all, delete-orphan')
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     def __repr__(self):
         return f'<Objekat {self.naziv}>'

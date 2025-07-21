@@ -274,9 +274,8 @@ Sledeći fajlovi treba da budu kreirani ili modifikovani u toku implementacije:
 5. `app/templates/klijenti/pravno_lice_detalji.html` - Template za prikaz detalja pravnog lica
 6. `app/templates/klijenti/radna_jedinica_form.html` - Template za kreiranje i izmenu radne jedinice
 7. `app/templates/klijenti/radna_jedinica_detalji.html` - Template za prikaz detalja radne jedinice
-8. `app/templates/klijenti/hijerarhija_partial.html` - Parcijalni template za prikaz hijerarhije
-9. `app/templates/partials/breadcrumb.html` - Proširiti parcijalni template za breadcrumb navigaciju
-10. `app/static/js/treeview.js` - JavaScript za interaktivni prikaz tree view hijerarhije
+8. `app/templates/partials/breadcrumb.html` - Proširiti parcijalni template za breadcrumb navigaciju
+9. `app/static/js/treeview.js` - JavaScript za interaktivni prikaz tree view hijerarhije
 
 ## Zaključak
 

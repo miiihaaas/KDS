@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, RadioField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, Email, Optional, Regexp
+from wtforms.validators import DataRequired, Length, Email, Optional, Regexp, ValidationError
 from app.utils.validators import optional_length, optional_email
 from app.models.client import PravnoLice, FizickoLice, Client, RadnaJedinica, Objekat
 
@@ -179,5 +179,31 @@ class ProstorijaForm(FlaskForm):
     ])
     namena = StringField('Namena', validators=[
         optional_length(max=100, message='Namena ne može biti duža od 100 karaktera.')
+    ])
+    submit = SubmitField('Sačuvaj')
+
+
+class LokacijaKuceForm(FlaskForm):
+    """Forma za kreiranje i ažuriranje lokacije kuće."""
+    naziv = StringField('Naziv', validators=[
+        DataRequired(message='Naziv lokacije je obavezan.'),
+        Length(min=2, max=255, message='Naziv mora imati između 2 i 255 karaktera.')
+    ])
+    adresa = StringField('Adresa', validators=[
+        DataRequired(message='Adresa je obavezna.'),
+        Length(max=255, message='Adresa ne može biti duža od 255 karaktera.')
+    ])
+    mesto = StringField('Mesto', validators=[
+        DataRequired(message='Mesto je obavezno.'),
+        Length(max=100, message='Mesto ne može biti duže od 100 karaktera.')
+    ])
+    postanski_broj = StringField('Poštanski broj', validators=[
+        DataRequired(message='Poštanski broj je obavezan.'),
+        Length(max=20, message='Poštanski broj ne može biti duži od 20 karaktera.'),
+        Regexp(r'^\d+$', message='Poštanski broj mora sadržati samo brojeve.')
+    ])
+    drzava = StringField('Država', default='Srbija', validators=[
+        DataRequired(message='Država je obavezna.'),
+        Length(max=100, message='Država ne može biti duža od 100 karaktera.')
     ])
     submit = SubmitField('Sačuvaj')

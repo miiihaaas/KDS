@@ -1,0 +1,25 @@
+<li class="tree-item {% if node.children %}has-children{% endif %} 
+    {% if (pravno_lice_id is defined and node.id == pravno_lice_id) or 
+        (fizicko_lice_id is defined and node.id == fizicko_lice_id) or 
+        (radna_jedinica_id is defined and node.id == radna_jedinica_id) or
+        (lokacija_kuce_id is defined and node.id == lokacija_kuce_id) or
+        (objekat_id is defined and node.id == objekat_id) or
+        (prostorija_id is defined and node.id == prostorija_id) %}active{% endif %}">
+    
+    <div class="tree-item-content">
+        <a href="{{ node.url }}">
+            <i class="{{ node.icon if node.icon else 'bi bi-folder' }}"></i>
+            <span>{{ node.name }}</span>
+        </a>
+    </div>
+    
+    {% if node.children %}
+        <ul class="tree-children">
+            {% for child in node.children %}
+                {% with node = child %}
+                    {% include 'klijenti/partials/tree_node.html' %}
+                {% endwith %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+</li>

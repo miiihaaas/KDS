@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% set active_page = "klijenti" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Glavni sadržaj -->
+        <div class="col-md-12 col-lg-12">
+            <!-- Breadcrumbs -->
+            {% include 'partials/breadcrumb.html' %}
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="bi bi-person"></i> 
+                    {{ klijent.ime }} {{ klijent.prezime }}
+                </h2>
+                <div>
+                    <a href="{{ url_for('klijenti.izmeni_klijenta', id=klijent.id) }}" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Izmeni
+                    </a>
+                    <a href="{{ url_for('klijenti.lista_lokacija', id=klijent.id) }}" class="btn btn-info">
+                        <i class="bi bi-house-heart"></i> Lokacije
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Osnovni podaci o klijentu -->
+            <div class="card shadow mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Osnovni podaci</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Ime:</th>
+                                    <td>{{ klijent.ime }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Prezime:</th>
+                                    <td>{{ klijent.prezime }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Adresa:</th>
+                                    <td>{{ klijent.adresa }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Mesto:</th>
+                                    <td>{{ klijent.mesto }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="30%">Telefon:</th>
+                                    <td>{{ klijent.telefon }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ klijent.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Poštanski broj:</th>
+                                    <td>{{ klijent.postanski_broj }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Država:</th>
+                                    <td>{{ klijent.drzava }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if klijent.napomena %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Napomena</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">{{ klijent.napomena|nl2br }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Statistika -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Lokacije</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0">{{ stats.lokacije }}</h3>
+                                    <p class="text-muted">Ukupan broj lokacija</p>
+                                </div>
+                                <a href="{{ url_for('klijenti.lista_lokacija', id=klijent.id) }}" class="btn btn-primary">
+                                    <i class="bi bi-house-heart"></i> Pregledaj
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Objekti</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0">{{ stats.objekti }}</h3>
+                                    <p class="text-muted">Ukupan broj objekata</p>
+                                </div>
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="bi bi-building"></i> Pregledaj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">Prostorije</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="mb-0">{{ stats.prostorije }}</h3>
+                                    <p class="text-muted">Ukupan broj prostorija</p>
+                                </div>
+                                <button class="btn btn-secondary" disabled>
+                                    <i class="bi bi-door-closed"></i> Pregledaj
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
