@@ -772,24 +772,46 @@ def novi_objekat(id):
 def detalji_objekta(id):
     """Prikaz detalja objekta."""
     objekat = Objekat.query.get_or_404(id)
-    radna_jedinica = objekat.radna_jedinica
-    pravno_lice = radna_jedinica.pravno_lice
     prostorije = Prostorija.query.filter_by(objekat_id=id).all()
     
-    # Koristimo funkciju za generisanje breadcrumbs
-    breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
-    
-    # Generišemo hijerarhijsko stablo
-    hierarchy = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=id)
-    
-    return render_template('klijenti/objekat_detalji.html',
+    # Određujemo tip roditelja (radna jedinica ili lokacija kuće)
+    if objekat.radna_jedinica_id:
+        radna_jedinica = objekat.radna_jedinica
+        pravno_lice = radna_jedinica.pravno_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=id)
+        
+        return render_template('klijenti/objekat_detalji.html',
                             title=f'Detalji objekta - {objekat.naziv}',
                             objekat=objekat,
                             radna_jedinica=radna_jedinica,
                             pravno_lice=pravno_lice,
                             prostorije=prostorije,
                             breadcrumbs=breadcrumbs,
-                            hierarchy=hierarchy,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
+    else:
+        lokacija = objekat.lokacija_kuce
+        fizicko_lice = lokacija.fizicko_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=lokacija.id, objekat_id=id)
+        
+        return render_template('klijenti/objekat_detalji.html',
+                            title=f'Detalji objekta - {objekat.naziv}',
+                            objekat=objekat,
+                            lokacija=lokacija,
+                            fizicko_lice=fizicko_lice,
+                            prostorije=prostorije,
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
                             active_id=id)
 
 @klijenti_bp.route('/objekat/<int:id>/izmeni', methods=['GET', 'POST'])
@@ -797,41 +819,79 @@ def detalji_objekta(id):
 def izmeni_objekat(id):
     """Izmena postojećeg objekta."""
     objekat = Objekat.query.get_or_404(id)
-    radna_jedinica = objekat.radna_jedinica
-    pravno_lice = radna_jedinica.pravno_lice
     form = ObjekatForm(obj=objekat)
     
-    # Koristimo funkciju za generisanje breadcrumbs
-    breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
-    # Dodajemo informaciju o izmeni
-    breadcrumbs.append({'name': 'Izmena', 'url': None})
-    
-    # Generišemo hijerarhijsko stablo
-    hierarchy = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=id)
-    
-    if form.validate_on_submit():
-        try:
-            objekat.naziv = form.naziv.data
-            objekat.opis = form.opis.data
-            
-            db.session.commit()
-            flash('Objekat je uspešno ažuriran.', 'success')
-            return redirect(url_for('klijenti.detalji_objekta', id=objekat.id))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Došlo je do greške pri ažuriranju objekta: {str(e)}', 'error')
-    
-    return render_template('klijenti/objekat_form.html',
-                            title=f'Izmena objekta - {objekat.naziv}',
-                            form=form,
-                            objekat=objekat,
-                            radna_jedinica=radna_jedinica,
-                            pravno_lice=pravno_lice,
-                            izmena=True,
-                            breadcrumbs=breadcrumbs,
-                            hierarchy=hierarchy,
-                            active_id=id)
+    # Određujemo tip roditelja (radna jedinica ili lokacija kuće)
+    if objekat.radna_jedinica_id:
+        radna_jedinica = objekat.radna_jedinica
+        pravno_lice = radna_jedinica.pravno_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        # Dodajemo informaciju o izmeni
+        breadcrumbs.append({'name': 'Izmena', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=id)
+        
+        if form.validate_on_submit():
+            try:
+                objekat.naziv = form.naziv.data
+                objekat.opis = form.opis.data
+                
+                db.session.commit()
+                flash('Objekat je uspešno ažuriran.', 'success')
+                return redirect(url_for('klijenti.detalji_objekta', id=objekat.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Došlo je do greške pri ažuriranju objekta: {str(e)}', 'error')
+        
+        return render_template('klijenti/objekat_form.html',
+                                title=f'Izmena objekta - {objekat.naziv}',
+                                form=form,
+                                objekat=objekat,
+                                radna_jedinica=radna_jedinica,
+                                pravno_lice=pravno_lice,
+                                izmena=True,
+                                breadcrumbs=breadcrumbs,
+                                hierarchy_tree=hierarchy_tree,
+                                active_id=id)
+    else:
+        lokacija = objekat.lokacija_kuce
+        fizicko_lice = lokacija.fizicko_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        # Dodajemo informaciju o izmeni
+        breadcrumbs.append({'name': 'Izmena', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=lokacija.id, objekat_id=id)
+        
+        if form.validate_on_submit():
+            try:
+                objekat.naziv = form.naziv.data
+                objekat.opis = form.opis.data
+                
+                db.session.commit()
+                flash('Objekat je uspešno ažuriran.', 'success')
+                return redirect(url_for('klijenti.detalji_objekta', id=objekat.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Došlo je do greške pri ažuriranju objekta: {str(e)}', 'error')
+        
+        return render_template('klijenti/objekat_form.html',
+                                title=f'Izmena objekta - {objekat.naziv}',
+                                form=form,
+                                objekat=objekat,
+                                lokacija=lokacija,
+                                fizicko_lice=fizicko_lice,
+                                izmena=True,
+                                breadcrumbs=breadcrumbs,
+                                hierarchy_tree=hierarchy_tree,
+                                active_id=id)
 
 
 
@@ -840,8 +900,15 @@ def izmeni_objekat(id):
 def obrisi_objekat(id):
     """Brisanje objekta."""
     objekat = Objekat.query.get_or_404(id)
-    radna_jedinica_id = objekat.radna_jedinica_id
     naziv = objekat.naziv
+    
+    # Određujemo tip roditelja (radna jedinica ili lokacija kuće)
+    if objekat.radna_jedinica_id:
+        radna_jedinica_id = objekat.radna_jedinica_id
+        povratni_url = url_for('klijenti.lista_objekata', id=radna_jedinica_id)
+    else:
+        lokacija_id = objekat.lokacija_kuce_id
+        povratni_url = url_for('klijenti.lista_objekata_lokacije', id=lokacija_id)
     
     try:
         db.session.delete(objekat)
@@ -851,78 +918,147 @@ def obrisi_objekat(id):
         db.session.rollback()
         flash(f'Došlo je do greške pri brisanju objekta: {str(e)}', 'error')
     
-    return redirect(url_for('klijenti.lista_objekata', id=radna_jedinica_id))
+    return redirect(povratni_url)
 
 @klijenti_bp.route('/objekat/<int:id>/prostorije')
 @login_required
 def lista_prostorija(id):
     """Prikaz liste prostorija za objekat."""
     objekat = Objekat.query.get_or_404(id)
-    radna_jedinica = objekat.radna_jedinica
-    pravno_lice = radna_jedinica.pravno_lice
     prostorije = Prostorija.query.filter_by(objekat_id=id).all()
     
-    breadcrumbs = [
-        {'name': 'Klijenti', 'url': url_for('klijenti.lista')},
-        {'name': pravno_lice.naziv, 'url': url_for('klijenti.detalji_klijenta', id=pravno_lice.id)},
-        {'name': radna_jedinica.naziv, 'url': url_for('klijenti.detalji_radne_jedinice', id=radna_jedinica.id)},
-        {'name': objekat.naziv, 'url': url_for('klijenti.detalji_objekta', id=objekat.id)},
-        {'name': 'Prostorije', 'url': None}
-    ]
-    
-    return render_template('klijenti/lista_prostorija.html',
+    # Određujemo tip roditelja (radna jedinica ili lokacija kuće)
+    if objekat.radna_jedinica_id:
+        radna_jedinica = objekat.radna_jedinica
+        pravno_lice = radna_jedinica.pravno_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=id)
+        
+        return render_template('klijenti/lista_prostorija.html',
                             title=f'Prostorije - {objekat.naziv}',
                             objekat=objekat,
                             radna_jedinica=radna_jedinica,
                             pravno_lice=pravno_lice,
                             prostorije=prostorije,
-                            breadcrumbs=breadcrumbs)
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
+    else:
+        lokacija = objekat.lokacija_kuce
+        fizicko_lice = lokacija.fizicko_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=lokacija.id, objekat_id=id)
+        
+        return render_template('klijenti/lista_prostorija.html',
+                            title=f'Prostorije - {objekat.naziv}',
+                            objekat=objekat,
+                            lokacija=lokacija,
+                            fizicko_lice=fizicko_lice,
+                            prostorije=prostorije,
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
 
 @klijenti_bp.route('/objekat/<int:id>/prostorije/nova', methods=['GET', 'POST'])
 @login_required
 def nova_prostorija(id):
     """Dodavanje nove prostorije za objekat."""
     objekat = Objekat.query.get_or_404(id)
-    radna_jedinica = objekat.radna_jedinica
-    pravno_lice = radna_jedinica.pravno_lice
     form = ProstorijaForm()
     
-    breadcrumbs = [
-        {'name': 'Klijenti', 'url': url_for('klijenti.lista')},
-        {'name': pravno_lice.naziv, 'url': url_for('klijenti.detalji_klijenta', id=pravno_lice.id)},
-        {'name': radna_jedinica.naziv, 'url': url_for('klijenti.detalji_radne_jedinice', id=radna_jedinica.id)},
-        {'name': objekat.naziv, 'url': url_for('klijenti.detalji_objekta', id=objekat.id)},
-        {'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)},
-        {'name': 'Nova', 'url': None}
-    ]
-    
-    if form.validate_on_submit():
-        try:
-            prostorija = Prostorija(
-                objekat_id=objekat.id,
-                naziv=form.naziv.data,
-                sprat=form.sprat.data,
-                broj=form.broj.data,
-                namena=form.namena.data,
-            )
-            
-            db.session.add(prostorija)
-            db.session.commit()
-            
-            flash('Nova prostorija je uspešno dodata.', 'success')
-            return redirect(url_for('klijenti.detalji_prostorije', id=prostorija.id))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Došlo je do greške pri kreiranju prostorije: {str(e)}', 'error')
-    
-    return render_template('klijenti/prostorija_form.html',
+    # Određujemo tip roditelja (radna jedinica ili lokacija kuće)
+    if objekat.radna_jedinica_id:
+        radna_jedinica = objekat.radna_jedinica
+        pravno_lice = radna_jedinica.pravno_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)})
+        breadcrumbs.append({'name': 'Nova', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=id)
+        
+        if form.validate_on_submit():
+            try:
+                prostorija = Prostorija(
+                    objekat_id=objekat.id,
+                    naziv=form.naziv.data,
+                    numericka_oznaka=form.numericka_oznaka.data,
+                    sprat=form.sprat.data,
+                    namena=form.namena.data
+                )
+                
+                db.session.add(prostorija)
+                db.session.commit()
+                
+                flash('Nova prostorija je uspešno dodata.', 'success')
+                return redirect(url_for('klijenti.detalji_prostorije', id=prostorija.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Došlo je do greške pri kreiranju prostorije: {str(e)}', 'error')
+        
+        return render_template('klijenti/prostorija_form.html',
                             title=f'Nova prostorija - {objekat.naziv}',
                             form=form,
                             objekat=objekat,
                             radna_jedinica=radna_jedinica,
                             pravno_lice=pravno_lice,
-                            breadcrumbs=breadcrumbs)
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
+    else:
+        lokacija = objekat.lokacija_kuce
+        fizicko_lice = lokacija.fizicko_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)})
+        breadcrumbs.append({'name': 'Nova', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=lokacija.id, objekat_id=id)
+        
+        if form.validate_on_submit():
+            try:
+                prostorija = Prostorija(
+                    objekat_id=objekat.id,
+                    naziv=form.naziv.data,
+                    numericka_oznaka=form.numericka_oznaka.data,
+                    sprat=form.sprat.data,
+                    namena=form.namena.data
+                )
+                
+                db.session.add(prostorija)
+                db.session.commit()
+                
+                flash('Nova prostorija je uspešno dodata.', 'success')
+                return redirect(url_for('klijenti.detalji_prostorije', id=prostorija.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Došlo je do greške pri kreiranju prostorije: {str(e)}', 'error')
+        
+        return render_template('klijenti/prostorija_form.html',
+                            title=f'Nova prostorija - {objekat.naziv}',
+                            form=form,
+                            objekat=objekat,
+                            lokacija=lokacija,
+                            fizicko_lice=fizicko_lice,
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
 
 @klijenti_bp.route('/prostorija/<int:id>', methods=['GET'])
 @login_required
@@ -930,25 +1066,51 @@ def detalji_prostorije(id):
     """Prikaz detalja prostorije."""
     prostorija = Prostorija.query.get_or_404(id)
     objekat = prostorija.objekat
-    radna_jedinica = objekat.radna_jedinica
-    pravno_lice = radna_jedinica.pravno_lice
+    prikaz_naziv = prostorija.get_display_name()
     
-    breadcrumbs = [
-        {'name': 'Klijenti', 'url': url_for('klijenti.lista')},
-        {'name': pravno_lice.naziv, 'url': url_for('klijenti.detalji_klijenta', id=pravno_lice.id)},
-        {'name': radna_jedinica.naziv, 'url': url_for('klijenti.detalji_radne_jedinice', id=radna_jedinica.id)},
-        {'name': objekat.naziv, 'url': url_for('klijenti.detalji_objekta', id=objekat.id)},
-        {'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)},
-        {'name': prostorija.naziv, 'url': None}
-    ]
-    
-    return render_template('klijenti/prostorija_detalji.html',
-                            title=f'Detalji prostorije - {prostorija.naziv}',
+    # Određujemo tip roditelja (radna jedinica ili lokacija kuće)
+    if objekat.radna_jedinica_id:
+        radna_jedinica = objekat.radna_jedinica
+        pravno_lice = radna_jedinica.pravno_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)})
+        breadcrumbs.append({'name': prikaz_naziv, 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=objekat.id)
+        
+        return render_template('klijenti/prostorija_detalji.html',
+                            title=f'Detalji prostorije - {prikaz_naziv}',
                             prostorija=prostorija,
                             objekat=objekat,
                             radna_jedinica=radna_jedinica,
                             pravno_lice=pravno_lice,
-                            breadcrumbs=breadcrumbs)
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
+    else:
+        lokacija = objekat.lokacija_kuce
+        fizicko_lice = lokacija.fizicko_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)})
+        breadcrumbs.append({'name': prikaz_naziv, 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=lokacija.id, objekat_id=objekat.id)
+        
+        return render_template('klijenti/prostorija_detalji.html',
+                            title=f'Detalji prostorije - {prikaz_naziv}',
+                            prostorija=prostorija,
+                            objekat=objekat,
+                            lokacija=lokacija,
+                            fizicko_lice=fizicko_lice,
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
 
 @klijenti_bp.route('/prostorija/<int:id>/izmeni', methods=['GET', 'POST'])
 @login_required
@@ -956,45 +1118,90 @@ def izmeni_prostoriju(id):
     """Izmena postojeće prostorije."""
     prostorija = Prostorija.query.get_or_404(id)
     objekat = prostorija.objekat
-    radna_jedinica = objekat.radna_jedinica
-    pravno_lice = radna_jedinica.pravno_lice
     form = ProstorijaForm(obj=prostorija)
+    prikaz_naziv = prostorija.get_display_name()
     
-    breadcrumbs = [
-        {'name': 'Klijenti', 'url': url_for('klijenti.lista')},
-        {'name': pravno_lice.naziv, 'url': url_for('klijenti.detalji_klijenta', id=pravno_lice.id)},
-        {'name': radna_jedinica.naziv, 'url': url_for('klijenti.detalji_radne_jedinice', id=radna_jedinica.id)},
-        {'name': objekat.naziv, 'url': url_for('klijenti.detalji_objekta', id=objekat.id)},
-        {'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)},
-        {'name': prostorija.naziv, 'url': url_for('klijenti.detalji_prostorije', id=prostorija.id)},
-        {'name': 'Izmena', 'url': None}
-    ]
-    
-    if form.validate_on_submit():
-        try:
-            prostorija.naziv = form.naziv.data
-            prostorija.sprat = form.sprat.data
-            prostorija.broj = form.broj.data
-            prostorija.namena = form.namena.data
-            
-            db.session.commit()
-            
-            flash('Prostorija je uspešno ažurirana.', 'success')
-            return redirect(url_for('klijenti.detalji_prostorije', id=prostorija.id))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Došlo je do greške pri ažuriranju prostorije: {str(e)}', 'error')
-    
-    return render_template('klijenti/prostorija_form.html',
-                            title=f'Izmena prostorije - {prostorija.naziv}',
+    # Određujemo tip roditelja (radna jedinica ili lokacija kuće)
+    if objekat.radna_jedinica_id:
+        radna_jedinica = objekat.radna_jedinica
+        pravno_lice = radna_jedinica.pravno_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)})
+        breadcrumbs.append({'name': prikaz_naziv, 'url': url_for('klijenti.detalji_prostorije', id=prostorija.id)})
+        breadcrumbs.append({'name': 'Izmena', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(pravno_lice_id=pravno_lice.id, radna_jedinica_id=radna_jedinica.id, objekat_id=objekat.id)
+        
+        if form.validate_on_submit():
+            try:
+                prostorija.naziv = form.naziv.data
+                prostorija.numericka_oznaka = form.numericka_oznaka.data
+                prostorija.sprat = form.sprat.data
+                prostorija.namena = form.namena.data
+                
+                db.session.commit()
+                
+                flash('Prostorija je uspešno ažurirana.', 'success')
+                return redirect(url_for('klijenti.detalji_prostorije', id=prostorija.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Došlo je do greške pri ažuriranju prostorije: {str(e)}', 'error')
+        
+        return render_template('klijenti/prostorija_form.html',
+                            title=f'Izmena prostorije - {prikaz_naziv}',
                             form=form,
                             prostorija=prostorija,
                             objekat=objekat,
                             radna_jedinica=radna_jedinica,
                             pravno_lice=pravno_lice,
                             izmena=True,
-                            breadcrumbs=breadcrumbs)
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
+    else:
+        lokacija = objekat.lokacija_kuce
+        fizicko_lice = lokacija.fizicko_lice
+        
+        # Koristimo funkciju za generisanje breadcrumbs
+        breadcrumbs = generate_breadcrumbs('objekat', entity=objekat)
+        breadcrumbs.append({'name': 'Prostorije', 'url': url_for('klijenti.lista_prostorija', id=objekat.id)})
+        breadcrumbs.append({'name': prikaz_naziv, 'url': url_for('klijenti.detalji_prostorije', id=prostorija.id)})
+        breadcrumbs.append({'name': 'Izmena', 'url': None})
+        
+        # Generišemo hijerarhijsko stablo
+        hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=lokacija.id, objekat_id=objekat.id)
+        
+        if form.validate_on_submit():
+            try:
+                prostorija.naziv = form.naziv.data
+                prostorija.numericka_oznaka = form.numericka_oznaka.data
+                prostorija.sprat = form.sprat.data
+                prostorija.namena = form.namena.data
+                
+                db.session.commit()
+                
+                flash('Prostorija je uspešno ažurirana.', 'success')
+                return redirect(url_for('klijenti.detalji_prostorije', id=prostorija.id))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Došlo je do greške pri ažuriranju prostorije: {str(e)}', 'error')
+        
+        return render_template('klijenti/prostorija_form.html',
+                            title=f'Izmena prostorije - {prikaz_naziv}',
+                            form=form,
+                            prostorija=prostorija,
+                            objekat=objekat,
+                            lokacija=lokacija,
+                            fizicko_lice=fizicko_lice,
+                            izmena=True,
+                            breadcrumbs=breadcrumbs,
+                            hierarchy_tree=hierarchy_tree,
+                            active_id=id)
 
 @klijenti_bp.route('/prostorija/<int:id>/obrisi', methods=['POST'])
 @login_required
@@ -1002,18 +1209,86 @@ def obrisi_prostoriju(id):
     """Brisanje prostorije."""
     prostorija = Prostorija.query.get_or_404(id)
     objekat_id = prostorija.objekat_id
-    naziv = prostorija.naziv
+    prikaz_naziv = prostorija.get_display_name()
     
     try:
         db.session.delete(prostorija)
         db.session.commit()
-        flash(f'Prostorija "{naziv}" je uspešno obrisana.', 'success')
+        flash(f'Prostorija "{prikaz_naziv}" je uspešno obrisana.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Došlo je do greške pri brisanju prostorije: {str(e)}', 'error')
     
     return redirect(url_for('klijenti.lista_prostorija', id=objekat_id))
 
+
+# Rute za objekte lokacije kuće
+
+@klijenti_bp.route('/lokacija/<int:id>/objekti')
+@login_required
+def lista_objekata_lokacije(id):
+    """Prikaz liste objekata za lokaciju kuće."""
+    lokacija = LokacijaKuce.query.get_or_404(id)
+    fizicko_lice = lokacija.fizicko_lice
+    objekti = Objekat.query.filter_by(lokacija_kuce_id=id).all()
+    
+    # Koristimo funkciju za generisanje breadcrumbs
+    breadcrumbs = generate_breadcrumbs('lokacija_kuce', entity=lokacija)
+    breadcrumbs.append({'name': 'Objekti', 'url': None})
+    
+    # Generišemo hijerarhijsko stablo
+    hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=id)
+    
+    return render_template('klijenti/lista_objekata.html',
+                          title=f'Objekti - {lokacija.naziv}',
+                          lokacija=lokacija,
+                          fizicko_lice=fizicko_lice,
+                          objekti=objekti,
+                          breadcrumbs=breadcrumbs,
+                          hierarchy_tree=hierarchy_tree,
+                          active_id=id)
+
+@klijenti_bp.route('/lokacija/<int:id>/objekti/novi', methods=['GET', 'POST'])
+@login_required
+def novi_objekat_lokacije(id):
+    """Dodavanje novog objekta za lokaciju kuće."""
+    lokacija = LokacijaKuce.query.get_or_404(id)
+    fizicko_lice = lokacija.fizicko_lice
+    form = ObjekatForm()
+    
+    # Koristimo funkciju za generisanje breadcrumbs
+    breadcrumbs = generate_breadcrumbs('lokacija_kuce', entity=lokacija)
+    breadcrumbs.append({'name': 'Novi objekat', 'url': None})
+    
+    # Generišemo hijerarhijsko stablo
+    hierarchy_tree = generate_hierarchy_tree(fizicko_lice_id=fizicko_lice.id, lokacija_kuce_id=id)
+    
+    if form.validate_on_submit():
+        try:
+            objekat = Objekat(
+                lokacija_kuce_id=lokacija.id,
+                naziv=form.naziv.data,
+                opis=form.opis.data
+            )
+            
+            db.session.add(objekat)
+            db.session.commit()
+            
+            flash('Novi objekat je uspešno dodat.', 'success')
+            return redirect(url_for('klijenti.detalji_objekta', id=objekat.id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Došlo je do greške pri kreiranju objekta: {str(e)}', 'error')
+    
+    return render_template('klijenti/objekat_form.html',
+                          title=f'Novi objekat - {lokacija.naziv}',
+                          form=form,
+                          lokacija=lokacija,
+                          fizicko_lice=fizicko_lice,
+                          breadcrumbs=breadcrumbs,
+                          hierarchy_tree=hierarchy_tree,
+                          active_id=id)
 
 # Rute za lokacije kuće
 @klijenti_bp.route('/fizicko-lice/<int:id>/lokacije')
@@ -1088,8 +1363,9 @@ def detalji_lokacije(id):
     lokacija = LokacijaKuce.query.get_or_404(id)
     fizicko_lice = lokacija.fizicko_lice
     
-    # Dohvatamo dodatne informacije o lokaciji
-    objekti_count = Objekat.query.filter_by(lokacija_kuce_id=id).count()
+    # Dohvatamo listu objekata i dodatne informacije o lokaciji
+    objekti = Objekat.query.filter_by(lokacija_kuce_id=id).all()
+    objekti_count = len(objekti)
     prostorije_count = Prostorija.query.join(Objekat).filter(Objekat.lokacija_kuce_id == id).count()
     
     # Generisanje breadcrumbs-a
@@ -1102,6 +1378,7 @@ def detalji_lokacije(id):
                             title=f'Detalji lokacije - {lokacija.naziv}',
                             lokacija=lokacija,
                             fizicko_lice=fizicko_lice,
+                            objekti=objekti,
                             breadcrumbs=breadcrumbs,
                             hierarchy_tree=hierarchy_tree,
                             stats={

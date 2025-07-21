@@ -46,8 +46,13 @@
                             <hr>
                             <table class="table table-borderless">
                                 <tr>
+                                    {% if objekat.radna_jedinica %}
                                     <th style="width: 30%;">Pripada radnoj jedinici:</th>
                                     <td><a href="{{ url_for('klijenti.detalji_radne_jedinice', id=objekat.radna_jedinica.id) }}">{{ objekat.radna_jedinica.naziv }}</a></td>
+                                    {% else %}
+                                    <th style="width: 30%;">Pripada lokaciji:</th>
+                                    <td><a href="{{ url_for('klijenti.detalji_lokacije', id=objekat.lokacija_kuce.id) }}">{{ objekat.lokacija_kuce.naziv }}</a></td>
+                                    {% endif %}
                                 </tr>
                             </table>
                         </div>

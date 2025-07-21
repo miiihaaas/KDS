@@ -5,7 +5,11 @@
     <div class="row mb-4">
         <div class="col">
             <h1>
+                {% if fizicko_lice %}
+                <i class="bi bi-buildings me-2"></i>Objekti - {{ fizicko_lice.puno_ime }}
+                {% else %}
                 <i class="bi bi-buildings me-2"></i>Objekti - {{ radna_jedinica.naziv }}
+                {% endif %}
             </h1>
             {% include 'partials/breadcrumb.html' %}
         </div>
@@ -17,9 +21,15 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">Lista objekata</h5>
                     <div class="btn-group">
+                        {% if fizicko_lice %}
+                        <a href="{{ url_for('klijenti.novi_objekat', id=lokacija.id) }}" class="btn btn-sm btn-success">
+                            <i class="bi bi-plus-circle me-1"></i>Novi objekat
+                        </a>
+                        {% else %}
                         <a href="{{ url_for('klijenti.novi_objekat', id=radna_jedinica.id) }}" class="btn btn-sm btn-success">
                             <i class="bi bi-plus-circle me-1"></i>Novi objekat
                         </a>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card-body">

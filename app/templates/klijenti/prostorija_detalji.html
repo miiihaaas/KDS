@@ -55,15 +55,29 @@
                             <table class="table table-borderless">
                                 <tr>
                                     <th style="width: 30%;">Pripada objektu:</th>
+                                    {% if prostorija.objekat.radna_jedinica %}
                                     <td><a href="{{ url_for('klijenti.detalji_objekta', id=prostorija.objekat.id) }}">{{ prostorija.objekat.naziv }}</a></td>
+                                    {% else %}
+                                    <td><a href="{{ url_for('klijenti.detalji_objekta', id=prostorija.objekat.id) }}">{{ prostorija.objekat.naziv }}</a></td>
+                                    {% endif %}
                                 </tr>
                                 <tr>
+                                    {% if prostorija.objekat.radna_jedinica %}
                                     <th>Radna jedinica:</th>
                                     <td><a href="{{ url_for('klijenti.detalji_radne_jedinice', id=prostorija.objekat.radna_jedinica.id) }}">{{ prostorija.objekat.radna_jedinica.naziv }}</a></td>
+                                    {% else %}
+                                    <th>Lokacija:</th>
+                                    <td><a href="{{ url_for('klijenti.detalji_lokacije', id=prostorija.objekat.lokacija_kuce.id) }}">{{ prostorija.objekat.lokacija_kuce.naziv }}</a></td>
+                                    {% endif %}
                                 </tr>
                                 <tr>
+                                    {% if prostorija.objekat.radna_jedinica %}
                                     <th>Pravno lice:</th>
                                     <td><a href="{{ url_for('klijenti.detalji_klijenta', id=prostorija.objekat.radna_jedinica.pravno_lice.id) }}">{{ prostorija.objekat.radna_jedinica.pravno_lice.naziv }}</a></td>
+                                    {% else %}
+                                    <th>Fizičko lice:</th>
+                                    <td><a href="{{ url_for('klijenti.detalji_klijenta', id=prostorija.objekat.lokacija_kuce.fizicko_lice.id) }}">{{ prostorija.objekat.lokacija_kuce.fizicko_lice.ime }} {{ prostorija.objekat.lokacija_kuce.fizicko_lice.prezime }}</a></td>
+                                    {% endif %}
                                 </tr>
                                 <tr>
                                     <th>Napomena:</th>

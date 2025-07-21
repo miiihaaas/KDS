@@ -162,25 +162,63 @@ class ObjekatForm(FlaskForm):
         Length(min=2, max=255, message='Naziv mora imati između 2 i 255 karaktera.')
     ])
     opis = TextAreaField('Opis', validators=[Optional()])
+    
+    # Dodajemo polje za tip roditelja samo za informaciju, ne za unos
+    parent_type = StringField('Tip roditelja', render_kw={'readonly': True}, validators=[Optional()])
+    
+    # Polje za skriven ID radne jedinice ili lokacije kuće, koje će se popunjavati kroz hidden field u template-u
+    radna_jedinica_id = StringField('ID radne jedinice', render_kw={'type': 'hidden'}, validators=[Optional()])
+    lokacija_kuce_id = StringField('ID lokacije kuće', render_kw={'type': 'hidden'}, validators=[Optional()])
+    
     submit = SubmitField('Sačuvaj')
+    
+    def validate(self, extra_validators=None):
+        """Prilagođena validacija forme da proveri da je postavljen tačno jedan od tipova roditelja."""
+        if not super().validate(extra_validators=extra_validators):
+            return False
+            
+        # # Provera da li je postavljen tačno jedan od roditelja
+        # has_radna_jedinica = bool(self.radna_jedinica_id.data and self.radna_jedinica_id.data.strip())
+        # has_lokacija_kuce = bool(self.lokacija_kuce_id.data and self.lokacija_kuce_id.data.strip())
+        
+        # if not (has_radna_jedinica or has_lokacija_kuce):
+        #     self.naziv.errors.append('Objekat mora biti povezan sa radnom jedinicom ili lokacijom kuće.')
+        #     return False
+            
+        # if has_radna_jedinica and has_lokacija_kuce:
+        #     self.naziv.errors.append('Objekat može biti povezan samo sa jednim roditeljem: radnom jedinicom ILI lokacijom kuće.')
+        #     return False
+            
+        return True
 
 
 class ProstorijaForm(FlaskForm):
     """Forma za kreiranje i ažuriranje prostorije."""
     naziv = StringField('Naziv prostorije', validators=[
-        DataRequired(message='Naziv prostorije je obavezan.'),
-        Length(min=2, max=255, message='Naziv mora imati između 2 i 255 karaktera.')
+        Optional(),
+        Length(max=255, message='Naziv ne može biti duži od 255 karaktera.')
+    ])
+    numericka_oznaka = StringField('Numerička oznaka', validators=[
+        Optional(),
+        Length(max=50, message='Numerička oznaka ne može biti duža od 50 karaktera.')
     ])
     sprat = StringField('Sprat', validators=[
         optional_length(max=50, message='Sprat ne može biti duži od 50 karaktera.')
-    ])
-    broj = StringField('Broj prostorije', validators=[
-        optional_length(max=50, message='Broj prostorije ne može biti duži od 50 karaktera.')
     ])
     namena = StringField('Namena', validators=[
         optional_length(max=100, message='Namena ne može biti duža od 100 karaktera.')
     ])
     submit = SubmitField('Sačuvaj')
+    
+    def validate(self, extra_validators=None):
+        if not super().validate(extra_validators=extra_validators):
+            return False
+        
+        if not self.naziv.data and not self.numericka_oznaka.data:
+            self.naziv.errors.append('Bar jedno od polja Naziv prostorije ili Numerička oznaka mora biti popunjeno.')
+            return False
+        
+        return True
 
 
 class LokacijaKuceForm(FlaskForm):

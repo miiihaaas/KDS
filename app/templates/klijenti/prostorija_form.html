@@ -33,9 +33,9 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    {{ form.broj.label(class="form-label") }}
-                                    {{ form.broj(class="form-control" + (" is-invalid" if form.broj.errors else "")) }}
-                                    {% for error in form.broj.errors %}
+                                    {{ form.numericka_oznaka.label(class="form-label") }}
+                                    {{ form.numericka_oznaka(class="form-control" + (" is-invalid" if form.numericka_oznaka.errors else "")) }}
+                                    {% for error in form.numericka_oznaka.errors %}
                                         <div class="invalid-feedback">{{ error }}</div>
                                     {% endfor %}
                                 </div>

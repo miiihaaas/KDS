@@ -123,7 +123,26 @@ class Objekat(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     def __repr__(self):
-        return f'<Objekat {self.naziv}>'
+        if self.radna_jedinica_id:
+            return f'<Objekat {self.naziv} (Radna jedinica: {self.radna_jedinica.naziv})>'
+        else:
+            return f'<Objekat {self.naziv} (Lokacija: {self.lokacija_kuce.naziv})>'
+            
+    def get_parent_type(self):
+        """Vraća tip roditelja objekta (radna_jedinica ili lokacija_kuce)."""
+        if self.radna_jedinica_id:
+            return 'radna_jedinica'
+        elif self.lokacija_kuce_id:
+            return 'lokacija_kuce'
+        return None
+        
+    def get_parent(self):
+        """Vraća roditeljski entitet (RadnaJedinica ili LokacijaKuce)."""
+        if self.radna_jedinica_id:
+            return self.radna_jedinica
+        elif self.lokacija_kuce_id:
+            return self.lokacija_kuce
+        return None
 
 # Model za prostorije objekta
 class Prostorija(db.Model):
@@ -131,12 +150,30 @@ class Prostorija(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     objekat_id = db.Column(db.Integer, db.ForeignKey('objekti.id'), nullable=False)
-    naziv = db.Column(db.String(255), nullable=False)
+    naziv = db.Column(db.String(255), nullable=True)
+    numericka_oznaka = db.Column(db.String(50), nullable=True)
     sprat = db.Column(db.String(50))
-    broj = db.Column(db.String(50))
     namena = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
     def __repr__(self):
-        return f'<Prostorija {self.naziv} - {self.broj}>'
+        if self.naziv and self.numericka_oznaka:
+            return f'<Prostorija {self.naziv} - {self.numericka_oznaka}>'
+        elif self.naziv:
+            return f'<Prostorija {self.naziv}>'
+        elif self.numericka_oznaka:
+            return f'<Prostorija {self.numericka_oznaka}>'
+        else:
+            return f'<Prostorija ID:{self.id}>'
+            
+    def get_display_name(self):
+        """Vraća naziv za prikaz, kombinujući naziv i numeričku oznaku ako oba postoje."""
+        if self.naziv and self.numericka_oznaka:
+            return f'{self.naziv} ({self.numericka_oznaka})'
+        elif self.naziv:
+            return self.naziv
+        elif self.numericka_oznaka:
+            return self.numericka_oznaka
+        else:
+            return f'Prostorija {self.id}'

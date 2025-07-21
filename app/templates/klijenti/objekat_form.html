@@ -15,7 +15,14 @@
         <div class="col-md-10 mx-auto">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="card-title">{{ 'Izmena objekta' if izmena else 'Novi objekat' }} - {{ radna_jedinica.naziv }}</h5>
+                    <h5 class="card-title">
+                        {{ 'Izmena objekta' if izmena else 'Novi objekat' }} - 
+                        {% if radna_jedinica is defined %}
+                            {{ radna_jedinica.naziv }}
+                        {% elif lokacija is defined %}
+                            {{ lokacija.naziv }}
+                        {% endif %}
+                    </h5>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -47,7 +54,13 @@
 
 
                         <div class="text-end mt-4">
-                            <a href="{% if izmena %}{{ url_for('klijenti.detalji_objekta', id=objekat.id) }}{% else %}{{ url_for('klijenti.lista_objekata', id=radna_jedinica.id) }}{% endif %}" class="btn btn-secondary me-2">Otkaži</a>
+                            <a href="{% if izmena %}
+                                    {{ url_for('klijenti.detalji_objekta', id=objekat.id) }}
+                                {% elif radna_jedinica is defined %}
+                                    {{ url_for('klijenti.lista_objekata', id=radna_jedinica.id) }}
+                                {% elif lokacija is defined %}
+                                    {{ url_for('klijenti.detalji_lokacije', id=lokacija.id) }}
+                                {% endif %}" class="btn btn-secondary me-2">Otkaži</a>
                             <button type="submit" class="btn btn-primary">{{ 'Sačuvaj izmene' if izmena else 'Dodaj objekat' }}</button>
                         </div>
                     </form>

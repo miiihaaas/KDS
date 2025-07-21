@@ -87,24 +87,67 @@
                 </div>
             </div>
             
+            <!-- Lista objekata -->
+            <div class="card shadow mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Objekti lokacije</h5>
+                    <a href="{{ url_for('klijenti.novi_objekat_lokacije', id=lokacija.id) }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Novi objekat
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if objekti %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Naziv</th>
+                                        <th>Opis</th>
+                                        <th>Broj prostorija</th>
+                                        <th>Datum kreiranja</th>
+                                        <th>Akcije</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for objekat in objekti %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ url_for('klijenti.detalji_objekta', id=objekat.id) }}">
+                                                    {{ objekat.naziv }}
+                                                </a>
+                                            </td>
+                                            <td>{{ objekat.opis|truncate(50) if objekat.opis else "-" }}</td>
+                                            <td>{{ objekat.prostorije|length }}</td>
+                                            <td>{{ objekat.created_at.strftime('%d.%m.%Y') }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ url_for('klijenti.detalji_objekta', id=objekat.id) }}" class="btn btn-sm btn-info" title="Detalji">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('klijenti.izmeni_objekat', id=objekat.id) }}" class="btn btn-sm btn-warning" title="Izmeni">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal" data-bs-objekat-id="{{ objekat.id }}" data-bs-objekat-naziv="{{ objekat.naziv }}" title="Obriši">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Nema objekata za ovu lokaciju. 
+                            <a href="{{ url_for('klijenti.novi_objekat_lokacije', id=lokacija.id) }}" class="alert-link">Dodajte prvi objekat</a>.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
             <!-- Statistika -->
             <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="card shadow">
-                        <div class="card-body">
-                            <h5 class="card-title">Objekti</h5>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h3 class="mb-0">{{ stats.objekti }}</h3>
-                                    <p class="text-muted">Ukupan broj objekata</p>
-                                </div>
-                                <a href="#" class="btn btn-primary">
-                                    <i class="bi bi-building"></i> Pregledaj
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <div class="col-md-6">
                     <div class="card shadow">
                         <div class="card-body">
@@ -123,7 +166,7 @@
                 </div>
             </div>
             
-            <!-- Modal za brisanje -->
+            <!-- Modal za brisanje lokacije -->
             <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -147,6 +190,52 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Modal za brisanje objekta -->
+            <div class="modal fade" id="deleteObjekatModal" tabindex="-1" aria-labelledby="deleteObjekatModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteObjekatModalLabel">Potvrda brisanja objekta</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zatvori"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Da li ste sigurni da želite da obrišete objekat <strong id="objekatNaziv"></strong>?</p>
+                            <p class="text-danger mt-2">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Ova akcija će obrisati sve prostorije povezane sa ovim objektom.
+                            </p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Odustani</button>
+                            <form id="deleteObjekatForm" method="post">
+                                <button type="submit" class="btn btn-danger">Obriši</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <script>
+                // Skript za podešavanje modala za brisanje objekta
+                document.addEventListener('DOMContentLoaded', function() {
+                    const deleteObjekatModal = document.getElementById('deleteObjekatModal');
+                    if (deleteObjekatModal) {
+                        deleteObjekatModal.addEventListener('show.bs.modal', function(event) {
+                            const button = event.relatedTarget;
+                            const objekatId = button.getAttribute('data-bs-objekat-id');
+                            const objekatNaziv = button.getAttribute('data-bs-objekat-naziv');
+                            
+                            // Postavlja naziv objekta u tekst modala
+                            deleteObjekatModal.querySelector('#objekatNaziv').textContent = objekatNaziv;
+                            
+                            // Postavlja akciju forme
+                            const form = deleteObjekatModal.querySelector('#deleteObjekatForm');
+                            form.action = '/klijenti/objekat/' + objekatId + '/obrisi';
+                        });
+                    }
+                });
+            </script>
         </div>
     </div>
 </div>
