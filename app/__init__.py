@@ -2,6 +2,7 @@ from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
+from flask_wtf.csrf import CSRFProtect
 from config import config
 from datetime import timedelta
 import os
@@ -10,6 +11,7 @@ import os
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+csrf = CSRFProtect()
 
 def create_app(config_name=None):
     """Flask app factory."""
@@ -23,6 +25,7 @@ def create_app(config_name=None):
     db.init_app(app)
     migrate.init_app(app, db)
     login_manager.init_app(app)
+    csrf.init_app(app)
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Morate se prijaviti da biste pristupili ovoj stranici.'
     login_manager.login_message_category = 'info'
@@ -41,6 +44,7 @@ def create_app(config_name=None):
     from app.views.vozila import vozila_bp
     from app.views.materijali import materijali_bp
     from app.views.api import api_bp
+    from app.views.uredjaji import bp as uredjaji_bp
     
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(dashboard_bp)
@@ -49,6 +53,7 @@ def create_app(config_name=None):
     app.register_blueprint(vozila_bp)
     app.register_blueprint(materijali_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(uredjaji_bp)
     
     # Glavna ruta
     @app.route('/')

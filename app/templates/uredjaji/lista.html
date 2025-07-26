@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista uređaja{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Uređaji</h2>
+        <a href="{{ url_for('uredjaji.novi_uredjaj') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novi uređaj
+        </a>
+    </div>
+
+    <!-- Filter forma -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Filteri</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{{ url_for('uredjaji.lista_uredjaja') }}" id="filterForm">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        {{ form.tip.label(class="form-label") }}
+                        {{ form.tip(class="form-select") }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.proizvodjac.label(class="form-label") }}
+                        {{ form.proizvodjac(class="form-control") }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.pretraga.label(class="form-label") }}
+                        {{ form.pretraga(class="form-control", placeholder="Traži po proizvođaču, modelu, serijskom broju...") }}
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="d-grid gap-2 w-100">
+                            {{ form.submit(class="btn btn-primary w-100") }}
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela uređaja -->
+    <div class="card">
+        <div class="card-body">
+            {% if uredjaji %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Tip</th>
+                            <th>Proizvođač</th>
+                            <th>Model</th>
+                            <th>Serijski broj</th>
+                            <th>Godina proizvodnje</th>
+                            <th>Prostorije</th>
+                            <th>Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for uredjaj in uredjaji %}
+                        <tr>
+                            <td>
+                                {% if uredjaj.tip == 'rashladna_tehnika' %}
+                                <span class="badge bg-info text-dark">Rashladna tehnika</span>
+                                {% elif uredjaj.tip == 'grejna_tehnika' %}
+                                <span class="badge bg-danger">Grejna tehnika</span>
+                                {% elif uredjaj.tip == 'ventilacioni_sistemi' %}
+                                <span class="badge bg-success">Ventilacioni sistemi</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ uredjaj.proizvodjac }}</td>
+                            <td>{{ uredjaj.model }}</td>
+                            <td>{{ uredjaj.serijski_broj }}</td>
+                            <td>{{ uredjaj.godina_proizvodnje }}</td>
+                            <td>
+                                {% if uredjaj.prostorije.count() > 0 %}
+                                    {% for prostorija in uredjaj.prostorije %}
+                                    <div>{{ prostorija.get_display_name() }}</div>
+                                    {% if prostorija.objekat.radna_jedinica %}
+                                    <div class="text-muted">{{ prostorija.objekat.radna_jedinica.pravno_lice.naziv }}>{{ prostorija.objekat.radna_jedinica.naziv }}>{{ prostorija.objekat.naziv }}</div>
+                                    {% elif prostorija.objekat.lokacija_kuce %}
+                                    <div class="text-muted">{{ prostorija.objekat.lokacija_kuce.fizicko_lice.puno_ime }}>{{ prostorija.objekat.lokacija_kuce.naziv }}>{{ prostorija.objekat.naziv }}</div>
+                                    {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                <span class="text-muted">Nije dodeljen</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('uredjaji.detalji_uredjaja', id=uredjaj.id) }}" 
+                                       class="btn btn-sm btn-outline-primary" 
+                                       title="Detalji">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('uredjaji.izmeni_uredjaj', id=uredjaj.id) }}" 
+                                       class="btn btn-sm btn-outline-secondary" 
+                                       title="Izmeni">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger" 
+                                            title="Obriši"
+                                            onclick="confirmDelete({{ uredjaj.id }})">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginacija -->
+            {% if pagination.pages > 1 %}
+            <div class="d-flex justify-content-center mt-4">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('uredjaji.lista_uredjaja', page=pagination.prev_num, **request.args) }}">Prethodna</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">Prethodna</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in pagination.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != pagination.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('uredjaji.lista_uredjaja', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                </li>
+                                {% else %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="#">{{ page_num }}</a>
+                                </li>
+                                {% endif %}
+                            {% else %}
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">...</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('uredjaji.lista_uredjaja', page=pagination.next_num, **request.args) }}">Sledeća</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#">Sledeća</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="alert alert-info" role="alert">
+                Nema pronađenih uređaja. {% if request.args %}Probajte da promenite filtere.{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Forma za brisanje -->
+<form id="deleteForm" method="post" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function confirmDelete(id) {
+        if (confirm('Da li ste sigurni da želite da obrišete ovaj uređaj?')) {
+            const form = document.getElementById('deleteForm');
+            form.action = "{{ url_for('uredjaji.obrisi_uredjaj', id=0) }}".replace('0', id);
+            form.submit();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Clear filters button
+        document.querySelectorAll('.clear-filter').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const fieldId = this.dataset.field;
+                document.getElementById(fieldId).value = '';
+                document.getElementById('filterForm').submit();
+            });
+        });
+    });
+</script>
+{% endblock %}

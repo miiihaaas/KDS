@@ -90,6 +90,74 @@
             </div>
         </div>
     </div>
+
+    <!-- Uređaji dodeljeni prostoriji -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Dodeljeni uređaji</h5>
+                    <a href="{{ url_for('uredjaji.dodeli_prostoriji', prostorija_id=prostorija.id) }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Dodeli uređaj
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if prostorija.uredjaji.count() > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Tip</th>
+                                    <th>Proizvođač</th>
+                                    <th>Model</th>
+                                    <th>Serijski broj</th>
+                                    <th>Godina proizvodnje</th>
+                                    <th>Akcije</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for uredjaj in prostorija.uredjaji %}
+                                <tr>
+                                    <td>
+                                        {% if uredjaj.tip == 'rashladna_tehnika' %}
+                                        <span class="badge bg-info text-dark">Rashladna tehnika</span>
+                                        {% elif uredjaj.tip == 'grejna_tehnika' %}
+                                        <span class="badge bg-danger">Grejna tehnika</span>
+                                        {% elif uredjaj.tip == 'ventilacioni_sistemi' %}
+                                        <span class="badge bg-success">Ventilacioni sistemi</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ uredjaj.proizvodjac }}</td>
+                                    <td>{{ uredjaj.model }}</td>
+                                    <td>{{ uredjaj.serijski_broj }}</td>
+                                    <td>{{ uredjaj.godina_proizvodnje }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('uredjaji.detalji_uredjaja', id=uredjaj.id) }}" class="btn btn-sm btn-outline-primary" title="Detalji">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <form method="post" action="{{ url_for('uredjaji.ukloni_iz_prostorije', id=uredjaj.id, prostorija_id=prostorija.id) }}" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Ukloni vezu" onclick="return confirm('Da li ste sigurni da želite ukloniti ovaj uređaj iz prostorije?');">
+                                                    <i class="bi bi-unlink"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="bi bi-info-circle me-2"></i> Ovoj prostoriji nije dodeljen nijedan uređaj.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal za brisanje -->

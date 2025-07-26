@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalji uređaja{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('uredjaji.lista_uredjaja') }}">Uređaji</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ uredjaj.get_display_name() }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ uredjaj.model }} {{ uredjaj.serijski_broj }}</h2>
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('uredjaji.izmeni_uredjaj', id=uredjaj.id) }}" class="btn btn-outline-primary">
+                <i class="fas fa-edit"></i> Izmeni
+            </a>
+            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete('{{ uredjaj.id }}')">
+                <i class="fas fa-trash"></i> Obriši
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Osnovne informacije</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr>
+                                <th scope="row" style="width: 30%">Tip uređaja</th>
+                                <td>
+                                    {% if uredjaj.tip == 'rashladna_tehnika' %}
+                                    <span class="badge bg-info text-dark">Rashladna tehnika</span>
+                                    {% elif uredjaj.tip == 'grejna_tehnika' %}
+                                    <span class="badge bg-danger">Grejna tehnika</span>
+                                    {% elif uredjaj.tip == 'ventilacioni_sistemi' %}
+                                    <span class="badge bg-success">Ventilacioni sistemi</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if uredjaj.podtip %}
+                            <tr>
+                                <th scope="row">Podtip</th>
+                                <td>{{ uredjaj.podtip }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th scope="row">Proizvođač</th>
+                                <td>{{ uredjaj.proizvodjac }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Model</th>
+                                <td>{{ uredjaj.model }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Serijski broj</th>
+                                <td>{{ uredjaj.serijski_broj }}</td>
+                            </tr>
+                            {% if uredjaj.inventarski_broj %}
+                            <tr>
+                                <th scope="row">Inventarski broj</th>
+                                <td>{{ uredjaj.inventarski_broj }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th scope="row">Godina proizvodnje</th>
+                                <td>{{ uredjaj.godina_proizvodnje }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Datum registracije</th>
+                                <td>{{ uredjaj.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Poslednje ažuriranje</th>
+                                <td>{{ uredjaj.updated_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Lokacije</h5>
+                </div>
+                <div class="card-body">
+                    {% if uredjaj.prostorije.count() > 0 %}
+                    <div class="list-group">
+                        {% for prostorija in uredjaj.prostorije %}
+                        <div class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ prostorija.get_display_name() }}</h5>
+                                <form method="post" action="{{ url_for('uredjaji.ukloni_iz_prostorije', id=uredjaj.id, prostorija_id=prostorija.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Ukloni vezu">
+                                        <i class="fas fa-unlink"></i>
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="mb-1">
+                                <small class="text-muted">
+                                    {% if prostorija.objekat.radna_jedinica_id %}
+                                    <a href="{{ url_for('klijenti.detalji_klijenta', id=prostorija.objekat.radna_jedinica.pravno_lice_id) }}">
+                                        {{ prostorija.objekat.radna_jedinica.pravno_lice.naziv }}
+                                    </a>
+                                    &gt;
+                                    <a href="{{ url_for('klijenti.detalji_radne_jedinice', id=prostorija.objekat.radna_jedinica_id) }}">
+                                        {{ prostorija.objekat.radna_jedinica.naziv }}
+                                    </a>
+                                    &gt;
+                                    {% elif prostorija.objekat.lokacija_kuce_id %}
+                                        <a href="{{ url_for('klijenti.detalji_klijenta', id=prostorija.objekat.lokacija_kuce.fizicko_lice_id) }}">
+                                            {{ prostorija.objekat.lokacija_kuce.fizicko_lice.puno_ime }}
+                                        </a>
+                                        &gt;
+                                        <a href="{{ url_for('klijenti.detalji_lokacije', id=prostorija.objekat.lokacija_kuce.id) }}">
+                                            {{ prostorija.objekat.lokacija_kuce.naziv }}
+                                        </a>
+                                        &gt;
+                                    {% endif %}
+                                    <a href="{{ url_for('klijenti.detalji_objekta', id=prostorija.objekat.id) }}">
+                                        {{ prostorija.objekat.naziv }}
+                                    </a>
+                                </small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i> Ovaj uređaj nije dodeljen nijednoj prostoriji.
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignLocationModal">
+                            <i class="fas fa-link"></i> Dodeli prostoriji
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Dodatne informacije ili istorija servisa - za buduća proširenja -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Istorija servisiranja</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light text-center" role="alert">
+                        <i class="fas fa-wrench"></i> Istorija servisiranja biće dostupna u budućem proširenju.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal za dodelu prostorije -->
+<div class="modal fade" id="assignLocationModal" tabindex="-1" aria-labelledby="assignLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignLocationModalLabel">Dodela prostorije</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="klijentSelect" class="form-label">Klijent</label>
+                            <select id="klijentSelect" class="form-select">
+                                <option value="">Odaberite klijenta</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="lokacijaSelect" class="form-label">Lokacija</label>
+                            <select id="lokacijaSelect" class="form-select" disabled>
+                                <option value="">Prvo odaberite klijenta</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="objekatSelect" class="form-label">Objekat</label>
+                            <select id="objekatSelect" class="form-select" disabled>
+                                <option value="">Prvo odaberite lokaciju</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label for="prostorijaSelect" class="form-label">Prostorija</label>
+                            <select id="prostorijaSelect" class="form-select" disabled>
+                                <option value="">Prvo odaberite objekat</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Otkaži</button>
+                <button type="button" class="btn btn-primary" id="dodeliButton" disabled>Dodeli prostoriji</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Forma za brisanje -->
+<form id="deleteForm" method="post" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+</form>
+
+<!-- Forma za dodelu prostorije -->
+<form id="dodelaForm" method="post" action="{{ url_for('uredjaji.dodeli_prostoriji_post') }}" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="uredjaj_id" value="{{ uredjaj.id }}">
+    <input type="hidden" name="prostorija_id" id="prostorijaIdInput">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Brisanje uređaja
+    function confirmDelete(id) {
+        if (confirm('Da li ste sigurni da želite da obrišete ovaj uređaj?')) {
+            const form = document.getElementById('deleteForm');
+            form.action = "{{ url_for('uredjaji.obrisi_uredjaj', id=0) }}".replace('0', id);
+            form.submit();
+        }
+    }
+
+    // Hijerarhijski odabir prostorije
+    document.addEventListener('DOMContentLoaded', function() {
+        const klijentSelect = document.getElementById('klijentSelect');
+        const lokacijaSelect = document.getElementById('lokacijaSelect');
+        const objekatSelect = document.getElementById('objekatSelect');
+        const prostorijaSelect = document.getElementById('prostorijaSelect');
+        const dodeliButton = document.getElementById('dodeliButton');
+
+        // Učitavanje klijenata
+        fetch("{{ url_for('uredjaji.api_klijenti') }}")
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(klijent => {
+                    const option = document.createElement('option');
+                    option.value = `${klijent.id},${klijent.tip}`;
+                    option.textContent = klijent.naziv;
+                    klijentSelect.appendChild(option);
+                });
+            });
+
+        // Event listener za odabir klijenta
+        klijentSelect.addEventListener('change', function() {
+            lokacijaSelect.innerHTML = '<option value="">Odaberite lokaciju</option>';
+            objekatSelect.innerHTML = '<option value="">Prvo odaberite lokaciju</option>';
+            prostorijaSelect.innerHTML = '<option value="">Prvo odaberite objekat</option>';
+            
+            lokacijaSelect.disabled = true;
+            objekatSelect.disabled = true;
+            prostorijaSelect.disabled = true;
+            dodeliButton.disabled = true;
+            
+            if (this.value) {
+                console.log(this.value);
+                const [id, tip] = this.value.split(',');
+                console.log('id: ' + id + ', tip: ' + tip);
+                fetch(`{{ url_for('uredjaji.api_lokacije', klijent_id=0, tip='tip') }}`.replace('0', id).replace('tip', tip))
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(lokacija => {
+                            const option = document.createElement('option');
+                            option.value = `${lokacija.id},${lokacija.tip}`;
+                            option.textContent = lokacija.naziv;
+                            lokacijaSelect.appendChild(option);
+                        });
+                        lokacijaSelect.disabled = false;
+                    });
+            }
+        });
+
+        // Event listener za odabir lokacije
+        lokacijaSelect.addEventListener('change', function() {
+            objekatSelect.innerHTML = '<option value="">Odaberite objekat</option>';
+            prostorijaSelect.innerHTML = '<option value="">Prvo odaberite objekat</option>';
+            
+            objekatSelect.disabled = true;
+            prostorijaSelect.disabled = true;
+            dodeliButton.disabled = true;
+            
+            if (this.value) {
+                const [id, tip] = this.value.split(',');
+                fetch(`{{ url_for('uredjaji.api_objekti', lokacija_id=0, tip='tip') }}`.replace('0', id).replace('tip', tip))
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(objekat => {
+                            const option = document.createElement('option');
+                            option.value = objekat.id;
+                            option.textContent = objekat.naziv;
+                            objekatSelect.appendChild(option);
+                        });
+                        objekatSelect.disabled = false;
+                    });
+            }
+        });
+
+        // Event listener za odabir objekta
+        objekatSelect.addEventListener('change', function() {
+            prostorijaSelect.innerHTML = '<option value="">Odaberite prostoriju</option>';
+            
+            prostorijaSelect.disabled = true;
+            dodeliButton.disabled = true;
+            
+            if (this.value) {
+                fetch(`{{ url_for('uredjaji.api_prostorije', objekat_id=0) }}`.replace('0', this.value))
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(prostorija => {
+                            const option = document.createElement('option');
+                            option.value = prostorija.id;
+                            option.textContent = prostorija.naziv;
+                            prostorijaSelect.appendChild(option);
+                        });
+                        prostorijaSelect.disabled = false;
+                    });
+            }
+        });
+
+        // Event listener za odabir prostorije
+        prostorijaSelect.addEventListener('change', function() {
+            dodeliButton.disabled = !this.value;
+        });
+
+        // Event listener za dugme dodeli
+        dodeliButton.addEventListener('click', function() {
+            if (prostorijaSelect.value) {
+                document.getElementById('prostorijaIdInput').value = prostorijaSelect.value;
+                document.getElementById('dodelaForm').submit();
+            }
+        });
+    });
+</script>
+{% endblock %}
