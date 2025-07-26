@@ -71,6 +71,21 @@ class UredjajForm(FlaskForm):
             self.podtip.choices = [('', 'Nije primenljivo')] if not podtipovi else [('', 'Odaberite podtip')] + [(p, p.replace('_', ' ').title()) for p in podtipovi]
         else:
             self.podtip.choices = [('', 'Prvo izaberite tip uređaja')]
+            
+    def validate_podtip(self, field):
+        """Validira da je podtip kompatibilan sa izabranim tipom."""
+        from app.models.device import Uredjaj
+        if not field.data or not self.tip.data or self.tip.data == '':
+            return
+            
+        if self.tip.data == 'ventilacioni_sistemi' and field.data:
+            # Ventilacioni sistemi nemaju podtip
+            raise ValidationError('Ventilacioni sistemi nemaju podtip.')
+            
+        # Provera da li je izabrani podtip u listi dozvoljenih za tip
+        dozvoljeni_podtipovi = Uredjaj.TIPOVI.get(self.tip.data, [])
+        if field.data and field.data not in dozvoljeni_podtipovi:
+            raise ValidationError('Izabrani podtip nije kompatibilan sa tipom uređaja.')
     
     def validate_serijski_broj(self, field):
         """Validacija jedinstvenosti serijskog broja."""
@@ -95,10 +110,28 @@ class UredjajFilterForm(FlaskForm):
         ('ventilacioni_sistemi', 'Ventilacioni sistemi')
     ], validators=[Optional()])
     
+    podtip = SelectField('Podtip uređaja', choices=[('', 'Svi podtipovi')], validators=[Optional()])
+    
     proizvodjac = StringField('Proizvođač', validators=[Optional()])
     pretraga = StringField('Pretraga', validators=[Optional()])
     
     submit = SubmitField('Filtriraj')
+    
+    def __init__(self, *args, **kwargs):
+        from app.models.device import Uredjaj
+        super(UredjajFilterForm, self).__init__(*args, **kwargs)
+        
+        # Inicijalno postavimo izbor podtipova na osnovu tipa
+        if 'tip' in self.data and self.data['tip'] in Uredjaj.TIPOVI:
+            podtipovi = Uredjaj.TIPOVI[self.data['tip']]
+            if podtipovi:
+                self.podtip.choices = [('', 'Svi podtipovi')] + [(p, p.replace('_', ' ').title()) for p in podtipovi]
+            else:
+                # Za ventilacione sisteme ili ako nema podtipova
+                self.podtip.choices = [('', 'Nema dostupnih podtipova')]
+        else:
+            # Ako tip nije izabran ili nije validan
+            self.podtip.choices = [('', 'Svi podtipovi')]
 
 
 class DodelaUredjajaForm(FlaskForm):

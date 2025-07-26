@@ -23,6 +23,9 @@ def lista_uredjaja():
     if request.args.get('tip'):
         query = query.filter(Uredjaj.tip == request.args.get('tip'))
         
+    if request.args.get('podtip'):
+        query = query.filter(Uredjaj.podtip == request.args.get('podtip'))
+        
     if request.args.get('proizvodjac'):
         query = query.filter(Uredjaj.proizvodjac.like(f"%{request.args.get('proizvodjac')}%"))
     
