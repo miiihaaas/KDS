@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}Štampa QR koda za uređaj{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Štampanje QR koda za uređaj</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Podaci o uređaju:</h4>
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>ID</th>
+                            <td>{{ uredjaj.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Proizvođač</th>
+                            <td>{{ uredjaj.proizvodjac }}</td>
+                        </tr>
+                        <tr>
+                            <th>Model</th>
+                            <td>{{ uredjaj.model }}</td>
+                        </tr>
+                        <tr>
+                            <th>Serijski broj</th>
+                            <td>{{ uredjaj.serijski_broj }}</td>
+                        </tr>
+                        <tr>
+                            <th>Tip</th>
+                            <td>{{ uredjaj.tip|replace('_', ' ')|title }}</td>
+                        </tr>
+                        {% if uredjaj.podtip %}
+                        <tr>
+                            <th>Podtip</th>
+                            <td>{{ uredjaj.podtip|replace('_', ' ')|title }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                <div class="col-md-6 text-center">
+                    <h4>Pregled QR koda:</h4>
+                    <img src="{{ url_for('uredjaji.prikazi_qr_kod', id=uredjaj.id) }}" alt="QR kod" class="img-fluid mb-3" style="max-width: 200px;">
+                    <div class="alert alert-info">
+                        <p>QR kod sadrži ID uređaja: <strong>{{ uredjaj.id }}</strong></p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('uredjaji.stampa_qr_kod', id=uredjaj.id) }}" class="mt-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-group">
+                    <label for="broj_kopija"><strong>Broj kopija za štampu:</strong></label>
+                    <input type="number" name="broj_kopija" id="broj_kopija" class="form-control" value="1" min="1" max="10" required style="max-width: 100px;">
+                    <small class="form-text text-muted">Izaberite koliko kopija QR koda želite da štampate (maksimalno 10).</small>
+                </div>
+                
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-print"></i> Generiši PDF za štampu
+                    </button>
+                    <a href="{{ url_for('uredjaji.detalji_uredjaja', id=uredjaj.id) }}" class="btn btn-secondary">
+                        <i class="fa fa-arrow-left"></i> Nazad na detalje
+                    </a>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <p><strong>Napomena:</strong> PDF je optimizovan za štampu na portabl štampačima sa nalepnicama dimenzija 57mm x 32mm.</p>
+                </div>
+                <!-- Dodajemo JS za proveru CSRF tokena -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const form = document.querySelector('form');
+                        form.addEventListener('submit', function(event) {
+                            if (!document.querySelector('input[name="csrf_token"]').value) {
+                                alert('Greška: CSRF token nedostaje!');
+                                event.preventDefault();
+                            }
+                        });
+                    });
+                </script>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

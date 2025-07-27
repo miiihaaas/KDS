@@ -1,12 +1,14 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, send_file, after_this_request
 from flask_login import login_required, current_user
 from app import db
 from app.models.device import Uredjaj
 from app.models.client import Prostorija, Objekat, RadnaJedinica, LokacijaKuce, PravnoLice, FizickoLice
 from app.models.device import Uredjaj
 from app.utils.device_forms import UredjajForm, UredjajFilterForm, DodelaUredjajaForm
+from app.utils.qr_utils import generisi_qr_kod_za_uredjaj, generisi_pdf_sa_qr_kodom
 from sqlalchemy import or_
 import traceback
+import os
 
 bp = Blueprint('uredjaji', __name__, url_prefix='/uredjaji')
 
@@ -193,6 +195,47 @@ def izmeni_uredjaj(id):
                 form.klijent_id.data = str(fizicko_lice.id)
     
     return render_template('uredjaji/forma.html', form=form, uredjaj=uredjaj, title="Izmena uređaja")
+
+@bp.route('/<int:id>/qr_kod')
+@login_required
+def prikazi_qr_kod(id):
+    """Prikazuje QR kod za uređaj."""
+    uredjaj = Uredjaj.query.get_or_404(id)
+    
+    # Dinamički generišemo QR kod
+    qr_buffer = generisi_qr_kod_za_uredjaj(uredjaj.id)
+    
+    # Vraćamo sliku direktno kao response
+    return send_file(
+        qr_buffer,
+        mimetype='image/png',
+        download_name=f'qr_kod_uredjaj_{id}.png'
+    )
+
+@bp.route('/<int:id>/stampa_qr_kod', methods=['GET', 'POST'])
+@login_required
+def stampa_qr_kod(id):
+    """Prikazuje formu za štampanje QR koda i generiše PDF."""
+    uredjaj = Uredjaj.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        broj_kopija = int(request.form.get('broj_kopija', 1))
+        pdf_buffer = generisi_pdf_sa_qr_kodom(uredjaj, broj_kopija)
+        
+        # Vrati PDF buffer kao response koji će se prikazati u novom tabu
+        response = send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=False,  # False znači da se otvara u browseru umesto preuzimanja
+            download_name=f"qr_kod_uredjaj_{id}.pdf"
+        )
+        
+        # Postavimo dodatne headere za prikazivanje u novom tabu
+        response.headers["Content-Disposition"] = f"inline; filename=qr_kod_uredjaj_{id}.pdf"
+        
+        return response
+        
+    return render_template('uredjaji/stampa_qr_kod.html', uredjaj=uredjaj)
 
 @bp.route('/obrisi/<int:id>', methods=['POST'])
 @login_required
