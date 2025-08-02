@@ -9,6 +9,7 @@ from app.utils.qr_utils import generisi_qr_kod_za_uredjaj, generisi_pdf_sa_qr_ko
 from sqlalchemy import or_
 import traceback
 import os
+import json
 
 bp = Blueprint('uredjaji', __name__, url_prefix='/uredjaji')
 
@@ -114,12 +115,47 @@ def novi_uredjaj():
     
     return render_template('uredjaji/forma.html', form=form, title="Novi uređaj")
 
-@bp.route('/<int:id>')
+@bp.route('/<int:id>', methods=['GET'])
 @login_required
 def detalji_uredjaja(id):
-    """Prikaz detalja uređaja."""
+    """Prikaz detalja uređaja, uključujući istoriju servisa."""
     uredjaj = Uredjaj.query.get_or_404(id)
-    return render_template('uredjaji/detalji.html', uredjaj=uredjaj)
+    
+    # Učitaj podatke o prostoriji i objektu za breadcrumb navigaciju
+    prostorija = uredjaj.prostorije.first()
+    objekat = prostorija.objekat if prostorija else None
+    lokacija = None
+    klijent = None
+    
+    if objekat:
+        if objekat.radna_jedinica_id:
+            lokacija = objekat.radna_jedinica
+            klijent = lokacija.pravno_lice if lokacija else None
+        elif objekat.lokacija_kuce_id:
+            lokacija = objekat.lokacija_kuce
+            klijent = lokacija.fizicko_lice if lokacija else None
+    
+    # Detektuj da li je korisnik došao skeniranjem QR koda
+    skenirano = request.args.get('source') == 'qr_scan'
+    
+    # TODO: U budućoj implementaciji, ovde učitati istoriju servisa
+    # Trenutno prikazujemo samo placeholder
+    servisi = [] # RadniNalog.query.filter_by(uredjaj_id=id).order_by(RadniNalog.datum_kreiranja.desc()).all()
+    
+    # Ako je korisnik došao preko QR skena, prikaži odgovarajuću poruku
+    if skenirano:
+        flash('Uređaj uspešno identifikovan putem QR koda.', 'success')
+    
+    return render_template(
+        'uredjaji/detalji.html',
+        uredjaj=uredjaj,
+        prostorija=prostorija,
+        objekat=objekat,
+        lokacija=lokacija,
+        klijent=klijent,
+        servisi=servisi,
+        skenirano=skenirano
+    )
 
 @bp.route('/<int:id>/izmeni', methods=['GET', 'POST'])
 @login_required
@@ -442,3 +478,36 @@ def dodeli_prostoriji_post():
         flash(f'Došlo je do greške prilikom dodele uređaja prostoriji.', 'danger')
     
     return redirect(url_for('uredjaji.lista_uredjaja'))
+
+@bp.route('/skeniraj', methods=['GET'])
+@login_required
+def skeniraj_qr_kod():
+    """Prikazuje interfejs za skeniranje QR koda."""
+    return render_template('uredjaji/skeniraj_qr.html')
+
+@bp.route('/api/ucitaj-uredjaj/<int:id>', methods=['GET'])
+@login_required
+def api_ucitaj_uredjaj(id):
+    """API ruta koja vraća osnovne podatke o uređaju nakon skeniranja QR koda."""
+    uredjaj = Uredjaj.query.get_or_404(id)
+    
+    # Učitaj podatke o prostoriji i objektu za breadcrumb navigaciju
+    prostorija = uredjaj.prostorije.first()
+    objekat = prostorija.objekat if prostorija else None
+    
+    rezultat = {
+        'id': uredjaj.id,
+        'naziv': uredjaj.get_display_name(),
+        'tip': uredjaj.tip,
+        'podtip': uredjaj.podtip,
+        'prostorija': {
+            'id': prostorija.id,
+            'naziv': prostorija.naziv
+        } if prostorija else None,
+        'objekat': {
+            'id': objekat.id,
+            'naziv': objekat.naziv
+        } if objekat else None
+    }
+    
+    return jsonify(rezultat)

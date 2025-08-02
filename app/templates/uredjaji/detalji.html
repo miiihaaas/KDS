@@ -6,10 +6,42 @@
 <div class="container-fluid mt-3">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
+            {% if klijent %}
+                {% if klijent.tip == 'pravno_lice' %}
+                <li class="breadcrumb-item"><a href="{{ url_for('klijenti.detalji_klijenta', id=klijent.id) }}">{{ klijent.naziv }}</a></li>
+                {% else %}
+                <li class="breadcrumb-item"><a href="{{ url_for('klijenti.detalji_klijenta', id=klijent.id) }}">{{ klijent.puno_ime }}</a></li>
+                {% endif %}
+            {% endif %}
+            
+            {% if lokacija %}
+                {% if lokacija.__tablename__ == 'radne_jedinice' %}
+                <li class="breadcrumb-item"><a href="{{ url_for('klijenti.detalji_radne_jedinice', id=lokacija.id) }}">{{ lokacija.naziv }}</a></li>
+                {% else %}
+                <li class="breadcrumb-item"><a href="{{ url_for('klijenti.detalji_lokacije', id=lokacija.id) }}">{{ lokacija.naziv }}</a></li>
+                {% endif %}
+            {% endif %}
+            
+            {% if objekat %}
+            <li class="breadcrumb-item"><a href="{{ url_for('klijenti.detalji_objekta', id=objekat.id) }}">{{ objekat.naziv }}</a></li>
+            {% endif %}
+            
+            {% if prostorija %}
+            <li class="breadcrumb-item"><a href="{{ url_for('klijenti.detalji_prostorije', id=prostorija.id) }}">{{ prostorija.naziv }}</a></li>
+            {% endif %}
+            
             <li class="breadcrumb-item"><a href="{{ url_for('uredjaji.lista_uredjaja') }}">Uređaji</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ uredjaj.get_display_name() }}</li>
         </ol>
     </nav>
+    
+    {% if skenirano %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-qrcode me-2"></i>
+        <strong>QR kod uspešno skeniran!</strong> Prikazani su podaci o uređaju.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>{{ uredjaj.model }} {{ uredjaj.serijski_broj }}</h2>
@@ -166,15 +198,58 @@
                 </div>
             </div>
 
-            <!-- Dodatne informacije ili istorija servisa - za buduća proširenja -->
+            <!-- Istorija servisa -->
             <div class="card">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Istorija servisiranja</h5>
+                    <div>
+                        <a href="#" class="btn btn-primary btn-sm" id="btnKreirajRadniNalog">
+                            <i class="fas fa-plus"></i> Kreiraj radni nalog
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-light text-center" role="alert">
-                        <i class="fas fa-wrench"></i> Istorija servisiranja biće dostupna u budućem proširenju.
+                    {% if servisi|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Datum</th>
+                                    <th>Serviser</th>
+                                    <th>Status</th>
+                                    <th>Opis</th>
+                                    <th>Akcije</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for servis in servisi %}
+                                <tr>
+                                    <td>{{ servis.datum_kreiranja.strftime('%d.%m.%Y') }}</td>
+                                    <td>{{ servis.serviser.get_full_name() }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ servis.status_badge_class }}">{{ servis.status_display }}</span>
+                                    </td>
+                                    <td>{{ servis.opis|truncate(50) }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
+                    {% else %}
+                    <div class="alert alert-info text-center" role="alert">
+                        <i class="fas fa-info-circle me-2"></i> Nema zabeleženih servisa za ovaj uređaj.
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="#" class="btn btn-primary" id="btnNoviServis">
+                            <i class="fas fa-plus"></i> Kreiraj prvi servisni nalog
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

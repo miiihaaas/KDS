@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% block title %}Skeniraj QR kod{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Skeniraj QR kod uređaja</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info" id="camera-instructions">
+                        <i class="fas fa-info-circle"></i> Usmerite kameru prema QR kodu na uređaju.
+                        <div class="small mt-1">Ako se skeniranje ne pokrene automatski, proverite da li ste odobrili pristup kameri.</div>
+                    </div>
+                    
+                    <div id="camera-container" class="mb-3 text-center">
+                        <div id="camera-placeholder" class="d-none">
+                            <p class="p-5 border">
+                                <i class="fas fa-camera fa-3x mb-2"></i><br>
+                                Učitavanje kamere...
+                            </p>
+                        </div>
+                        <div id="camera-fallback" class="d-none">
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle"></i> 
+                                Pristup kameri nije moguć ili je odbijen.
+                                <hr>
+                                <div class="mt-2">
+                                    <p>Molimo vas da:</p>
+                                    <ol>
+                                        <li>Proverite da li imate kameru na uređaju</li>
+                                        <li>Dozvolite pristup kameri u podešavanjima browsera</li>
+                                        <li>Osvežite stranicu i pokušajte ponovo</li>
+                                    </ol>
+                                    <p>Alternativno, možete uneti ID uređaja direktno:</p>
+                                    <div class="input-group mt-3">
+                                        <input type="text" id="manual-id" class="form-control" placeholder="Unesite ID uređaja">
+                                        <div class="input-group-append">
+                                            <button id="submit-manual" class="btn btn-primary">Potvrdite</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <video id="qr-video" class="w-100 border" style="max-height: 70vh;"></video>
+                        <canvas id="qr-canvas" class="d-none"></canvas>
+                    </div>
+                    
+                    <div id="scanner-controls" class="text-center">
+                        <button id="toggle-camera" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-sync"></i> Promeni kameru
+                        </button>
+                        <button id="stop-camera" class="btn btn-outline-secondary">
+                            <i class="fas fa-power-off"></i> Zaustavi kameru
+                        </button>
+                    </div>
+                    
+                    <div id="result-container" class="mt-4 d-none">
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> QR kod uspešno skeniran!
+                        </div>
+                        <div class="d-flex justify-content-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Učitavanje...</span>
+                            </div>
+                        </div>
+                        <p class="text-center">Preusmeravanje na stranicu uređaja...</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('uredjaji.lista_uredjaja') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Nazad na listu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Dodavanje jsQR biblioteke za QR skeniranje -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('qr-video');
+    const canvas = document.getElementById('qr-canvas');
+    const ctx = canvas.getContext('2d');
+    const cameraPlaceholder = document.getElementById('camera-placeholder');
+    const cameraFallback = document.getElementById('camera-fallback');
+    const resultContainer = document.getElementById('result-container');
+    const toggleCameraBtn = document.getElementById('toggle-camera');
+    const stopCameraBtn = document.getElementById('stop-camera');
+    const submitManualBtn = document.getElementById('submit-manual');
+    const manualIdInput = document.getElementById('manual-id');
+    
+    let currentStream = null;
+    let scanning = false;
+    let facingMode = 'environment'; // 'environment' za zadnju kameru, 'user' za prednju
+    
+    // Funkcija za pokretanje kamere
+    async function startCamera() {
+        try {
+            cameraPlaceholder.classList.remove('d-none');
+            
+            // Zaustavljanje prethodnog streama ako postoji
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+            }
+            
+            const constraints = {
+                video: { 
+                    facingMode: facingMode,
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            };
+            
+            currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = currentStream;
+            cameraPlaceholder.classList.add('d-none');
+            video.classList.remove('d-none');
+            
+            // Pokretanje video streama
+            video.play();
+            
+            // Pokretanje skeniranja
+            scanning = true;
+            scanQrCode();
+            
+        } catch (error) {
+            console.error("Greška pri pristupu kameri:", error);
+            cameraPlaceholder.classList.add('d-none');
+            cameraFallback.classList.remove('d-none');
+            video.classList.add('d-none');
+        }
+    }
+    
+    // Funkcija za zaustavljanje kamere
+    function stopCamera() {
+        scanning = false;
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        video.srcObject = null;
+        video.classList.add('d-none');
+        cameraFallback.classList.remove('d-none');
+    }
+    
+    // Funkcija za skeniranje QR koda
+    function scanQrCode() {
+        if (!scanning) return;
+        
+        // Proverava da li je video spreman
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Uzimanje podataka slike
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "dontInvert",
+            });
+            
+            // Ako je QR kod detektovan
+            if (code) {
+                console.log("QR kod detektovan:", code.data);
+                handleQrResult(code.data);
+                return;
+            }
+        }
+        
+        // Ponovo poziva funkciju za skeniranje
+        requestAnimationFrame(scanQrCode);
+    }
+    
+    // Obrada rezultata QR koda
+    function handleQrResult(data) {
+        scanning = false;
+        try {
+            console.log("Skenirani sadržaj QR koda:", data);
+            
+            // Pokušaj da pronađemo ID uređaja u različitim formatima
+            let deviceId = null;
+            
+            // Slučaj 1: QR kod sadrži samo broj
+            if (/^\d+$/.test(data)) {
+                deviceId = parseInt(data);
+            } 
+            // Slučaj 2: QR kod sadrži URL sa ID-om (npr. http://example.com/uredjaji/123)
+            else if (data.includes('/uredjaji/')) {
+                const matches = data.match(/\/uredjaji\/([0-9]+)/);
+                if (matches && matches[1]) {
+                    deviceId = parseInt(matches[1]);
+                }
+            }
+            // Slučaj 3: QR kod sadrži JSON ili neki drugi format sa ID-om
+            else if (data.includes('id') || data.includes('ID')) {
+                try {
+                    // Pokušaj da parsiramo kao JSON
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.id) deviceId = parseInt(jsonData.id);
+                    else if (jsonData.ID) deviceId = parseInt(jsonData.ID);
+                    else if (jsonData.uredjaj_id) deviceId = parseInt(jsonData.uredjaj_id);
+                } catch (e) {
+                    // Nije JSON, pokušaj sa regex da nađemo ID=broj ili id:broj
+                    const matches = data.match(/(id|ID)[=:"'\s]+(\d+)/);
+                    if (matches && matches[2]) {
+                        deviceId = parseInt(matches[2]);
+                    }
+                }
+            }
+            
+            if (!deviceId || isNaN(deviceId)) {
+                throw new Error("Nije pronađen validan ID uređaja u QR kodu");
+            }
+            
+            console.log("Pronađen ID uređaja:", deviceId);
+            
+            // Prikaz rezultata i priprema za redirekciju
+            resultContainer.classList.remove('d-none');
+            video.classList.add('d-none');
+            
+            // Preusmeravanje na stranicu uređaja
+            setTimeout(() => {
+                window.location.href = `{{ url_for('uredjaji.detalji_uredjaja', id=0) }}`.replace('0', deviceId) + '?source=qr_scan';
+            }, 1500);
+            
+        } catch (error) {
+            console.error("Greška pri obradi QR koda:", error);
+            const errorMsg = `Neispravan QR kod: ${error.message}. Molimo pokušajte ponovo.`;
+            alert(errorMsg);
+            // Dodajemo informaciju o skeniranom sadržaju u konzolu za lakše otklanjanje grešaka
+            console.log("Sadržaj QR koda koji nije mogao biti obrađen:", data);
+            scanning = true;
+            scanQrCode();
+        }
+    }
+    
+    // Event listeneri
+    toggleCameraBtn.addEventListener('click', function() {
+        facingMode = facingMode === 'environment' ? 'user' : 'environment';
+        startCamera();
+    });
+    
+    stopCameraBtn.addEventListener('click', function() {
+        stopCamera();
+    });
+    
+    submitManualBtn.addEventListener('click', function() {
+        const deviceId = manualIdInput.value.trim();
+        if (deviceId && !isNaN(parseInt(deviceId))) {
+            handleQrResult(deviceId);
+        } else {
+            alert("Molimo unesite važeći ID uređaja.");
+        }
+    });
+    
+    // Automatsko pokretanje kamere pri učitavanju stranice
+    startCamera();
+});
+</script>
+{% endblock %}
